@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grid Calculator</title>
+  <meta name="description" content="A modular grid, Villard de Honnecourt canon and baseline typography, all locked to a pixel unit.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="src/styles/tokens.css">
+  <link rel="stylesheet" href="src/styles/layout.css">
+  <link rel="stylesheet" href="src/styles/controls.css">
+</head>
+<body>
+  <div class="app" data-panel="open">
+    <main class="stage" aria-label="Grid preview">
+      <header class="stage__bar">
+        <div class="brand">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <h1>Grid Calculator</h1>
+        </div>
+        <p class="stage__meta" id="canvas-meta" aria-live="polite"></p>
+        <button class="btn btn--ghost" id="panel-toggle" type="button" aria-controls="panel" aria-expanded="true">Controls</button>
+      </header>
+
+      <div class="stage__viewport" id="viewport">
+        <div class="stage__canvas" id="canvas-host"></div>
+      </div>
+
+      <section class="readout" id="readout" aria-label="Measurements">
+        <dl class="readout__grid" data-readout-grid></dl>
+        <ul class="readout__notes" data-readout-notes hidden></ul>
+      </section>
+    </main>
+
+    <aside class="panel" id="panel" aria-label="Parameters">
+      <form id="controls" onsubmit="return false" autocomplete="off"></form>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status" data-show="false"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="src/core/math.js"></script>
+  <script src="src/core/config.js"></script>
+  <script src="src/core/canon.js"></script>
+  <script src="src/core/columns.js"></script>
+  <script src="src/core/typography.js"></script>
+  <script src="src/core/model.js"></script>
+  <script src="src/core/scene.js"></script>
+  <script src="src/core/exporters.js"></script>
+  <script src="src/ui/store.js"></script>
+  <script src="src/ui/schema.js"></script>
+  <script src="src/ui/panel.js"></script>
+  <script src="src/ui/readout.js"></script>
+  <script src="src/render/p5-renderer.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

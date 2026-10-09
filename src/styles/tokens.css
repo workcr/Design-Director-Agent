@@ -1,0 +1,69 @@
+/* Design tokens — a drafting-table instrument: warm paper / graphite, one vermilion accent. */
+:root {
+  color-scheme: dark;
+
+  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --bg: #0d0d0f;
+  --panel: #141417;
+  --surface: #1b1b20;
+  --surface-hi: #24242b;
+  --line: #2a2a31;
+  --line-strong: #3b3b45;
+  --text: #ececf1;
+  --text-dim: #9b9ba8;
+  --text-faint: #6b6b78;
+  --accent: #ff5a36;
+  --accent-ink: #14100f;
+  --focus: #a7f7fa;
+  --ok: #5bd68a;
+  --warn: #ffc24a;
+  --bad: #ff6464;
+  --stage-dot: rgba(255, 255, 255, 0.09);
+  --shadow-canvas: 0 1px 0 rgba(255, 255, 255, 0.04), 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  --u: 8px;
+  --space-1: calc(var(--u) * 0.5);
+  --space-2: var(--u);
+  --space-3: calc(var(--u) * 1.5);
+  --space-4: calc(var(--u) * 2);
+  --space-6: calc(var(--u) * 3);
+  --radius: 4px;
+  --panel-width: calc(var(--u) * 46);
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.78125rem;
+  --text-base: 0.875rem;
+
+  --duration-fast: 120ms;
+  --duration-normal: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #e7e4dc;
+    --panel: #f5f3ed;
+    --surface: #ebe8df;
+    --surface-hi: #e0dcd1;
+    --line: #d6d2c6;
+    --line-strong: #bdb8a9;
+    --text: #17171a;
+    --text-dim: #5d5d68;
+    --text-faint: #8a8a94;
+    --accent: #e0401f;
+    --accent-ink: #fff;
+    --focus: #0e7c86;
+    --ok: #17803d;
+    --warn: #a86a00;
+    --bad: #c4261d;
+    --stage-dot: rgba(0, 0, 0, 0.14);
+    --shadow-canvas: 0 24px 50px -16px rgba(40, 30, 10, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast: 0ms; --duration-normal: 0ms; }
+}

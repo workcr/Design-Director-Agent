@@ -1,0 +1,11 @@
+{
+  "name": "grid-calculator",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Modular grid + Villard de Honnecourt / Van de Graaf canon + typography, all locked to a pixel unit.",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 5173"
+  },
+  "license": "Apache-2.0"
+}
