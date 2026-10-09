@@ -34,6 +34,9 @@
       anchorStrong: { fill: cfg.cPower, fillAlpha: 1, stroke: cfg.cBg, alpha: 0.9, w: 1.25 * lw },
       anchor: { stroke: cfg.cPower, alpha: 0.9, w: 1.25 * lw },
       powerLabel: { fill: cfg.cPower, fillAlpha: 1 },
+      placement: { stroke: cfg.cPower, alpha: 0.95, w: 1.25 * lw, fill: cfg.cPower, fillAlpha: 0.1 },
+      placementLabel: { fill: cfg.cPower, fillAlpha: 1 },
+      focal: { stroke: cfg.cPower, alpha: 1, w: 1.75 * lw },
       label: { fill: cfg.cText, fillAlpha: 0.75 },
       text: { fill: cfg.cText, fillAlpha: 1 },
     };
@@ -112,6 +115,21 @@
         const b = g.block;
         const on = [b.x, b.y, b.w, b.h].every((v) => isOnGrid(v, u));
         rect(!on && cfg.showOffGrid ? 'offgrid' : 'block', b.x, b.y, b.w, b.h, { fill: false });
+      });
+    }
+
+    // placement preview: the selected template's boxes and the focal points
+    if (cfg.showPlacements) {
+      const chosen = model.placements.templates.find((t) => t.id === model.placements.selected.id);
+      chosen.items.forEach((it) => {
+        const b = it.box;
+        rect('placement', b.x, b.y, b.width, b.height);
+        out.push({ t: 'text', role: 'placementLabel', strs: [it.role], x: b.x, y: b.y, size: 11, screen: true, align: 'left', dx: 6, dy: 15, fitWidth: b.width });
+      });
+      model.placements.focalPoints.forEach((f) => {
+        out.push({ t: 'dot', role: 'focal', x: f.x, y: f.y, r: 9 });
+        out.push({ t: 'dot', role: 'anchorStrong', x: f.x, y: f.y, r: 3 });
+        out.push({ t: 'text', role: 'placementLabel', strs: [`F${f.rank}`], x: f.x, y: f.y, size: 10, screen: true, align: 'left', dx: 12, dy: -8 });
       });
     }
 

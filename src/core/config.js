@@ -64,6 +64,8 @@
     powerMargin: 5, powerSnap: true, anchorMode: 'diagonal',
     showPower: true, showAnchors: true, showPowerLabels: true,
     showPowerDiagonals: false, showStripDiagonals: false,
+    // placements
+    showPlacements: false, placementTemplate: 'auto',
     // display
     showPixelGrid: true, majorEvery: 8, gridOpacity: 0.35,
     showBaseline: true, showCanon: true, showLadder: true, showPages: true,
@@ -91,6 +93,7 @@
     baselineScope: oneOf(['canvas', 'blocks']),
     powerDepth: ['int', 1, 5], powerBase2: ['bool'], powerBase3: ['bool'], powerBase5: ['bool'],
     powerMargin: ['int', 0, 24], powerSnap: ['bool'], anchorMode: oneOf(['diagonal', 'all']),
+    showPlacements: ['bool'], placementTemplate: ['id'],
     showPower: ['bool'], showAnchors: ['bool'], showPowerLabels: ['bool'],
     showPowerDiagonals: ['bool'], showStripDiagonals: ['bool'],
     showPixelGrid: ['bool'], majorEvery: ['int', 2, 32], gridOpacity: ['num', 0.05, 1],
@@ -114,6 +117,7 @@
         const n = Number(raw);
         out[key] = Number.isFinite(n) ? clamp(kind === 'int' ? Math.round(n) : n, a, b) : DEFAULTS[key];
       } else if (kind === 'bool') out[key] = Boolean(raw);
+      else if (kind === 'id') out[key] = /^[a-z0-9-]{1,40}$/.test(String(raw)) ? String(raw) : DEFAULTS[key];
       else if (kind === 'enum') out[key] = a.includes(String(raw)) ? String(raw) : DEFAULTS[key];
       else out[key] = /^#[0-9a-f]{6}$/i.test(raw) ? raw : DEFAULTS[key];
     }

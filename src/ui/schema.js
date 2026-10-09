@@ -56,6 +56,13 @@
       ],
     },
     {
+      id: 'placement', title: 'Placements', open: true,
+      fields: [
+        chip('showPlacements', 'Preview on canvas'),
+        { key: 'placementPicker', label: 'Template', type: 'custom', hint: 'Roles snapped to power lines for this canvas shape. Export the data or a plain-language brief from the Export section.' },
+      ],
+    },
+    {
       id: 'grid', title: 'Modular grid', open: true,
       fields: [
         { key: 'columns', label: 'Columns', type: 'range', min: 1, max: 12, step: 1 },
@@ -115,6 +122,8 @@
         { key: 'exportSvg', label: 'SVG', type: 'button', action: 'svg' },
         { key: 'exportCss', label: 'Copy CSS tokens', type: 'button', action: 'css' },
         { key: 'exportJson', label: 'Download JSON', type: 'button', action: 'json' },
+        { key: 'exportPlacements', label: 'Placements JSON', type: 'button', action: 'placements' },
+        { key: 'exportBrief', label: 'Copy agent brief', type: 'button', action: 'brief' },
         { key: 'reset', label: 'Reset all', type: 'button', action: 'reset', variant: 'danger' },
       ],
     },

@@ -49,6 +49,12 @@
     svg() { download(`${slug()}.svg`, new Blob([G.exporters.toSvg(model, scene)], { type: 'image/svg+xml' })); say('SVG exported'); },
     json() { download(`${slug()}.json`, new Blob([JSON.stringify(G.exporters.toJson(model), null, 2)], { type: 'application/json' })); say('JSON exported'); },
     async css() { say((await copyText(G.exporters.toCss(model))) ? 'CSS tokens copied' : 'Copy failed — clipboard blocked'); },
+    placements() {
+      const json = G.exporters.toPlacementsJson(model);
+      download(`${slug()}-placements.json`, new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' }));
+      say('Placements exported');
+    },
+    async brief() { say((await copyText(G.exporters.toBrief(model))) ? 'Agent brief copied' : 'Copy failed — clipboard blocked'); },
     guides() {
       const result = G.config.toggleGuides(store.get(), savedGuides);
       savedGuides = result.saved;

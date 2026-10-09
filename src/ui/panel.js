@@ -197,11 +197,43 @@
     };
   }
 
+  function placementPickerControl(f, store) {
+    const id = 'ctl-placementTemplate';
+    const select = el('select', { id });
+    select.addEventListener('change', () => store.patch({ placementTemplate: select.value, showPlacements: true }));
+    const note = el('p', { class: 'hint' });
+    const body = el('tbody');
+    const table = el('table', { class: 'scale' }, [
+      el('thead', {}, [el('tr', {}, ['role', 'anchor px', 'size'].map((t) => el('th', { text: t, scope: 'col' })))]),
+      body,
+    ]);
+    const meta = el('p', { class: 'hint' });
+    const node = el('div', { class: 'field field--custom' }, [
+      el('label', { for: id, text: f.label }), select, note, table, meta, f.hint && el('p', { class: 'hint', text: f.hint }),
+    ]);
+    return {
+      node,
+      sync(cfg, model) {
+        const p = model.placements;
+        select.replaceChildren(...p.available.map((t) => el('option', { value: t.id, text: t.name })));
+        select.value = p.selected.id;
+        const chosen = p.templates.find((t) => t.id === p.selected.id);
+        note.textContent = chosen.note;
+        body.replaceChildren(...chosen.items.map((it) => el('tr', {}, [
+          el('th', { scope: 'row', text: it.role }),
+          el('td', { text: `${it.anchorPoint.x}, ${it.anchorPoint.y}` }),
+          el('td', { text: `${it.box.width}×${it.box.height}` }),
+        ])));
+        meta.textContent = `${p.orientation} · ratio ${p.ratio}${p.offLines ? ` · ${p.offLines} edges off the lines at this depth` : ' · every edge on a power line'}`;
+      },
+    };
+  }
+
   const BUILDERS = {
     range: rangeControl, number: numberControl, segmented: segmentedControl, select: selectControl,
     toggle: toggleControl, chip: chipControl, color: colorControl,
   };
-  const CUSTOM = { perfect: perfectControl, aligned: alignedControl, typescale: typeScaleControl, powerTable: powerTableControl };
+  const CUSTOM = { perfect: perfectControl, aligned: alignedControl, typescale: typeScaleControl, powerTable: powerTableControl, placementPicker: placementPickerControl };
 
   function createPanel(root, store, actions) {
     const controls = [];

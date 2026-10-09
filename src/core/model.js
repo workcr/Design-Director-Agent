@@ -2,7 +2,7 @@
 (function () {
   const G = (globalThis.GridCalc = globalThis.GridCalc || {});
   if (typeof module !== 'undefined') {
-    ['./math.js', './config.js', './canon.js', './columns.js', './powerlines.js', './typography.js'].forEach(require);
+    ['./math.js', './config.js', './canon.js', './columns.js', './powerlines.js', './placement.js', './typography.js'].forEach(require);
   }
   const { isOnGrid, toUnits, round, EPS } = G.math;
 
@@ -62,6 +62,7 @@
     const canon = G.canon.computeCanon(cfg);
     const type = G.typography.resolveType(cfg);
     const power = G.powerlines.computePowerLines(cfg, canon.view);
+    const placements = G.placement.buildPlacements(power, canon.view, cfg);
     const grids = canon.blocks.map((b) => G.columns.layoutBlockGrid(b, cfg, type.baselineUnits));
     const origin = cfg.baselineOrigin === 'block' && canon.blocks.length ? canon.blocks[0].y : 0;
     const baseline = {
@@ -79,7 +80,7 @@
       })
       : [];
 
-    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, grids, type, baseline, text };
+    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, placements, grids, type, baseline, text };
     model.integrity = scoreIntegrity(model);
     model.alignedDivisions = alignedDivisions(cfg, power);
 
@@ -96,6 +97,9 @@
     };
 
     model.warnings = [...canon.warnings, ...grids.flatMap((g) => g.warnings)];
+    if (cfg.showPlacements && placements.offLines > 0) {
+      model.warnings.push({ level: 'info', text: `${placements.offLines} placement edges are not on a power line at depth ${cfg.powerDepth} — raise the depth to land them on the field (they are still snapped to the grid).` });
+    }
     if (cfg.snapMode === 'none' && model.integrity.offenders.length) {
       model.warnings.push({ level: 'info', text: 'Snapping is off — the exact canon is shown, so some edges sit between grid lines.' });
     }

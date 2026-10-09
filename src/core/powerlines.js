@@ -36,6 +36,17 @@
     return [...found.values()].sort((a, b) => a.level - b.level || a.den - b.den || a.value - b.value);
   }
 
+  /**
+   * Position of a fraction of `length`. Snaps the distance from the nearest edge, exactly as the
+   * canon snaps its margins, so a line and the canon edge it coincides with always agree and the
+   * field mirrors about the centre.
+   */
+  function snapPosition(value, length, cfg) {
+    const ideal = value * length;
+    if (!cfg.powerSnap) return ideal;
+    return value <= 0.5 ? snap(ideal, cfg.unit, 'nearest') : length - snap(length - ideal, cfg.unit, 'nearest');
+  }
+
   /** Places fractions on an axis: drops lines too close to an edge, snaps, de-duplicates. */
   function placeAxis(length, series, cfg) {
     const u = cfg.unit;
@@ -45,10 +56,7 @@
     series.forEach((f) => {
       const ideal = f.value * length;
       if (Math.min(ideal, length - ideal) < minEdge - EPS) return;
-      // snap the distance from the nearest edge, exactly as the canon snaps its margins,
-      // so a line and the canon edge it coincides with always agree (and the field mirrors)
-      let pos = ideal;
-      if (cfg.powerSnap) pos = f.value <= 0.5 ? snap(ideal, u, 'nearest') : length - snap(length - ideal, u, 'nearest');
+      const pos = snapPosition(f.value, length, cfg);
       if (pos <= EPS || pos >= length - EPS) return;
       const key = Math.round(pos * 1000);
       if (taken.has(key)) return;
@@ -119,6 +127,6 @@
     return { matched: hit(xs, power.x) + hit(ys, power.y), total: xs.size + ys.size };
   }
 
-  G.powerlines = { BASES, fractionSeries, placeAxis, onPrimaryDiagonal, computePowerLines, canonAlignment };
+  G.powerlines = { BASES, fractionSeries, snapPosition, placeAxis, onPrimaryDiagonal, computePowerLines, canonAlignment };
   if (typeof module !== 'undefined') module.exports = G.powerlines;
 })();

@@ -100,13 +100,79 @@
         const dash = st.dash ? ` stroke-dasharray="${st.dash.join(' ')}"` : '';
         return `<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" ${fill} ${stroke}${dash}/>`;
       }
-      if (p.role === 'label' || p.role === 'powerLabel') return ''; // labels are screen-sized annotations; omitted from vector export
+      if (p.strs) return ''; // labels are screen-sized annotations; omitted from vector export
       const family = esc(p.family || 'sans-serif');
       return `<text x="${n(p.x)}" y="${n(p.y)}" font-family="${family}" font-size="${p.size}" font-weight="${p.weight || 'normal'}" fill="${st.fill}">${esc(p.str)}</text>`;
     }).filter(Boolean).join('\n  ');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${view.width}" height="${view.height}" viewBox="0 0 ${view.width} ${view.height}">\n  <rect width="100%" height="100%" fill="${cfg.cBg}"/>\n  ${body}\n</svg>\n`;
   }
 
-  G.exporters = { toCss, toJson, toSvg };
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+
+  /** Everything an agent needs to place elements on this canvas, as plain data. */
+  function toPlacementsJson(model) {
+    const { cfg, unit, view, power, placements, baseline, margins } = model;
+    const line = (l) => ({ fraction: l.label, position: l.pos, units: l.units, exact: l.exact });
+    return {
+      version: 1,
+      canvas: {
+        width: view.width, height: view.height, unit, ratio: placements.ratio, orientation: placements.orientation,
+        layout: cfg.layout, widthUnits: round(view.width / unit, 3), heightUnits: round(view.height / unit, 3),
+      },
+      baseline: { step: baseline.step, units: baseline.units },
+      canonMargins: margins.snapped,
+      margin: placements.margin,
+      lines: { x: power.x.map(line), y: power.y.map(line) },
+      anchors: power.anchors.map((a) => ({ x: a.x, y: a.y, label: a.label, onDiagonal: a.strong })),
+      focalPoints: placements.focalPoints,
+      selected: placements.selected.id,
+      templates: placements.templates,
+      rules: [
+        `Every position, size and gap is a multiple of ${unit}px; text baselines sit on a ${baseline.step}px step.`,
+        'Place an element by its anchorPoint; box edges are power lines unless onPowerLine is false.',
+        'Boxes share edges where they touch — apply the column gutter inside each box, not between boxes.',
+        'Choose the template whose character fits the content; keep one focal point per composition.',
+      ],
+    };
+  }
+
+  /** The same information as a compact, readable brief for an agent prompt. */
+  function toBrief(model) {
+    const { unit, view, power, placements: p, baseline } = model;
+    const g = gcd(view.width, view.height);
+    const pxu = (v) => `${round(v, 2)}px (${round(v / unit, 2)}u)`;
+    const lines = (arr) => arr.map((l) => `${l.label}=${round(l.pos, 2)}`).join(', ');
+    const sel = p.templates.find((t) => t.id === p.selected.id);
+    const out = [
+      `# Layout brief — ${view.width} × ${view.height} px (${p.orientation}, ratio ${p.ratio}${g > 1 && view.width / g < 40 ? `, ${view.width / g}:${view.height / g}` : ''})`,
+      '',
+      `Grid unit ${unit}px. Baseline step ${baseline.step}px (${baseline.units}u). Snap every element edge, size and gap to a multiple of ${unit}px and set text baselines on the ${baseline.step}px step.`,
+      '',
+      '## Margins',
+      `Left ${pxu(p.margin.x.pos)}, right ${pxu(view.width - p.margin.xFar.pos)}, top ${pxu(p.margin.y.pos)}, bottom ${pxu(view.height - p.margin.yFar.pos)} (lines ${p.margin.x.label} / ${p.margin.y.label}).`,
+      '',
+      '## Power lines (px)',
+      `x: ${lines(power.x)}`,
+      `y: ${lines(power.y)}`,
+      '',
+      '## Focal points (ranked)',
+      ...p.focalPoints.map((f) => `${f.rank}. ${f.label} → (${f.x}, ${f.y}) — ${f.note}${f.onDiagonal ? ' [on a canvas diagonal]' : ''}`),
+      '',
+      `## Suggested template: ${sel.name} (${sel.id})`,
+      sel.note,
+      ...sel.items.map((it) => `- ${it.role}: anchor ${it.anchor} at (${it.anchorPoint.x}, ${it.anchorPoint.y}); box x ${it.box.x}, y ${it.box.y}, ${it.box.width} × ${it.box.height}px — ${it.note}`),
+      '',
+      `Other templates for this format: ${p.available.filter((t) => t.id !== sel.id).map((t) => `${t.name} (${t.id})`).join('; ') || 'none'}.`,
+      '',
+      '## Rules',
+      '- Boxes share edges where they touch; apply the column gutter inside each box.',
+      '- Keep one dominant focal point and align secondary elements to the listed power lines.',
+      '- Do not use every line — choose a few and let the rest stay empty.',
+      p.offLines ? `- Note: ${p.offLines} template edges fall between power lines at the current depth; they are snapped to the grid instead.` : '',
+    ];
+    return `${out.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd()}\n`;
+  }
+
+  G.exporters = { toCss, toJson, toSvg, toPlacementsJson, toBrief };
   if (typeof module !== 'undefined') module.exports = G.exporters;
 })();
