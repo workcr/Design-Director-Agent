@@ -77,13 +77,27 @@
 
   function selectControl(f, store) {
     const id = `ctl-${f.key}`;
-    const select = el('select', { id }, f.options.map(([value, text]) => el('option', { value, text })));
+    const select = el('select', { id });
+    let signature = '';
+    const fill = (options) => {
+      const next = JSON.stringify(options);
+      if (next === signature) return; // do not rebuild while the menu may be open
+      signature = next;
+      select.replaceChildren(...options.map(([value, text]) => el('option', { value, text })));
+    };
+    if (typeof f.options !== 'function') fill(f.options);
     select.addEventListener('change', () => {
       const extra = f.patchFrom ? f.patchFrom(select.value, store.get()) : {};
       store.patch(f.virtual ? extra : { [f.key]: select.value, ...extra });
     });
     const node = el('div', { class: 'field field--select' }, [el('label', { for: id, text: f.label }), select]);
-    return { node, sync(cfg) { select.value = f.valueFrom ? f.valueFrom(cfg) : cfg[f.key]; } };
+    return {
+      node,
+      sync(cfg, model) {
+        if (typeof f.options === 'function') fill(f.options(model));
+        select.value = f.valueFrom ? f.valueFrom(cfg) : cfg[f.key];
+      },
+    };
   }
 
   function toggleControl(f, store) {
@@ -233,7 +247,9 @@
     range: rangeControl, number: numberControl, segmented: segmentedControl, select: selectControl,
     toggle: toggleControl, chip: chipControl, color: colorControl,
   };
-  const CUSTOM = { perfect: perfectControl, aligned: alignedControl, typescale: typeScaleControl, powerTable: powerTableControl, placementPicker: placementPickerControl };
+  const CUSTOM = { perfect: perfectControl, aligned: alignedControl, typescale: typeScaleControl, powerTable: powerTableControl, placementPicker: placementPickerControl,
+    elements: (f, store) => G.ui.createElementsEditor(f, store),
+  };
 
   function createPanel(root, store, actions) {
     const controls = [];
@@ -272,5 +288,6 @@
     };
   }
 
+  G.ui.el = el;
   G.ui.createPanel = createPanel;
 })();

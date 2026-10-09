@@ -1,6 +1,6 @@
 {
   "name": "grid-calculator",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "description": "Modular grid + Villard de Honnecourt / Van de Graaf canon + typography, all locked to a pixel unit.",
   "scripts": {

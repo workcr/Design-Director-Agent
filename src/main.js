@@ -63,6 +63,10 @@
     reset() { store.reset(); say('Reset to defaults'); },
   };
 
+  G.ui.say = say;
+  G.assets.onChange(() => renderer.redraw());
+  G.fonts.onChange(() => store.patch({}));
+
   const panel = G.ui.createPanel($('#controls'), store, actions);
 
   let frame = 0;

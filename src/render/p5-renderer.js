@@ -24,7 +24,7 @@
   /** Shared 2D context for text measurement, same font engine p5 draws with. */
   const measureCtx = document.createElement('canvas').getContext('2d');
   function measure(text, size, weight, family) {
-    measureCtx.font = `${weight || 'normal'} ${size}px ${G.scene.FAMILY[family] || family}`;
+    measureCtx.font = `${weight || 'normal'} ${size}px ${G.fonts.stack(family)}`;
     return measureCtx.measureText(text).width;
   }
 
@@ -89,6 +89,37 @@
           const t = crisp(y0, weight);
           ctx.strokeRect(l, t, crisp(x0 + p.w, weight) - l, crisp(y0 + p.h, weight) - t);
         }
+      } else if (p.t === 'image') {
+        const img = p.assetId ? G.assets.image(p.assetId) : null;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(p.x, p.y, p.w, p.h);
+        ctx.clip();
+        if (img && img.naturalWidth) {
+          if (p.fit === 'cover') {
+            const s = Math.max(p.w / img.naturalWidth, p.h / img.naturalHeight);
+            const dw = img.naturalWidth * s;
+            const dh = img.naturalHeight * s;
+            ctx.drawImage(img, p.x + (p.w - dw) / 2, p.y + (p.h - dh) / 2, dw, dh);
+          } else {
+            ctx.drawImage(img, p.x, p.y, p.w, p.h);
+          }
+        } else {
+          // no file in this session: show the measured box with a cross and its name
+          ctx.fillStyle = rgba(st.fill, st.fillAlpha * 2);
+          ctx.fillRect(p.x, p.y, p.w, p.h);
+          ctx.strokeStyle = rgba(st.stroke, 0.35);
+          ctx.lineWidth = Math.max(1, minWeight);
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + p.w, p.y + p.h);
+          ctx.moveTo(p.x + p.w, p.y); ctx.lineTo(p.x, p.y + p.h);
+          ctx.stroke();
+          ctx.font = `500 ${11 / scale}px ui-monospace, Menlo, monospace`;
+          ctx.fillStyle = rgba(cfg.cText, 0.8);
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(p.missing ? p.name : `${p.name} · re-upload to preview`, p.x + 6 / scale, p.y + 16 / scale);
+        }
+        ctx.restore();
       } else if (p.t === 'dot') {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r / scale, 0, Math.PI * 2);
@@ -177,6 +208,7 @@
         scene = nextScene;
         refresh();
       },
+      redraw: refresh,
       get scale() { return scale; },
       /** Renders the current scene at 1:1 and resolves with a PNG blob. */
       exportPng() {

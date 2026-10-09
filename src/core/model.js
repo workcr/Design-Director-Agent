@@ -2,7 +2,7 @@
 (function () {
   const G = (globalThis.GridCalc = globalThis.GridCalc || {});
   if (typeof module !== 'undefined') {
-    ['./math.js', './config.js', './canon.js', './columns.js', './powerlines.js', './placement.js', './typography.js'].forEach(require);
+    ['./math.js', './config.js', './canon.js', './columns.js', './powerlines.js', './placement.js', './typography.js', './fonts.js', './elements.js'].forEach(require);
   }
   const { isOnGrid, toUnits, round, EPS } = G.math;
 
@@ -21,6 +21,10 @@
         edges.push({ axis: 'x', label: `${tag} column edge`, v: m.x }, { axis: 'x', label: `${tag} column edge`, v: m.x + m.w });
         edges.push({ axis: 'y', label: `${tag} row edge`, v: m.y }, { axis: 'y', label: `${tag} row edge`, v: m.y + m.h });
       });
+    });
+    (model.elements ? model.elements.items : []).filter((it) => !it.empty).forEach((it) => {
+      edges.push({ axis: 'x', label: `${it.role} ${it.id} left`, v: it.box.x }, { axis: 'x', label: `${it.role} ${it.id} right`, v: it.box.x + it.box.width });
+      edges.push({ axis: 'y', label: `${it.role} ${it.id} top`, v: it.box.y }, { axis: 'y', label: `${it.role} ${it.id} bottom`, v: it.box.y + it.box.height });
     });
     if (model.cfg.showPower || model.cfg.showAnchors) {
       model.power.x.forEach((l) => edges.push({ axis: 'x', label: `power line ${l.label}`, v: l.pos }));
@@ -70,8 +74,14 @@
       ys: baselineLines(cfg, canon.view, origin, type.baselineStep),
     };
 
-    const areas = grids.flatMap((g) => (cfg.rows > 1 ? g.modules : g.columns));
     const measureFn = measure || estimateWidth;
+    const chosen = placements.templates.find((t) => t.id === placements.selected.id);
+    const elements = G.elements.solveElements({
+      cfg, template: chosen, resolver: G.placement.makeResolver(power, canon.view, cfg), scale: type.scale,
+      baseline, view: canon.view, measure: (t, size, weight, family) => measureFn(t, size, weight, family),
+    });
+
+    const areas = grids.flatMap((g) => (cfg.rows > 1 ? g.modules : g.columns));
     const usable = grids.every((g) => g.ok);
     const text = cfg.showSpecimen && usable
       ? G.typography.flowText({
@@ -80,7 +90,7 @@
       })
       : [];
 
-    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, placements, grids, type, baseline, text };
+    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, placements, elements, grids, type, baseline, text };
     model.integrity = scoreIntegrity(model);
     model.alignedDivisions = alignedDivisions(cfg, power);
 
@@ -96,7 +106,7 @@
       maxDeviation: Math.max(0, ...canon.blocks.flatMap((b) => Object.values(b.deviation).map(Math.abs))),
     };
 
-    model.warnings = [...canon.warnings, ...grids.flatMap((g) => g.warnings)];
+    model.warnings = [...canon.warnings, ...grids.flatMap((g) => g.warnings), ...elements.warnings];
     if (cfg.showPlacements && placements.offLines > 0) {
       model.warnings.push({ level: 'info', text: `${placements.offLines} placement edges are not on a power line at depth ${cfg.powerDepth} — raise the depth to land them on the field (they are still snapped to the grid).` });
     }

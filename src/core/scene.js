@@ -5,7 +5,7 @@
  */
 (function () {
   const G = (globalThis.GridCalc = globalThis.GridCalc || {});
-  if (typeof module !== 'undefined') require('./math.js');
+  if (typeof module !== 'undefined') { require('./math.js'); require('./fonts.js'); }
   const { isOnGrid, round, toUnits } = G.math;
 
   const OFFGRID = '#ff3b30';
@@ -34,6 +34,8 @@
       anchorStrong: { fill: cfg.cPower, fillAlpha: 1, stroke: cfg.cBg, alpha: 0.9, w: 1.25 * lw },
       anchor: { stroke: cfg.cPower, alpha: 0.9, w: 1.25 * lw },
       powerLabel: { fill: cfg.cPower, fillAlpha: 1 },
+      element: { stroke: cfg.cText, alpha: 0.45, w: 0.75 * lw, dash: [3, 3] },
+      asset: { stroke: cfg.cText, alpha: 0.5, w: lw, fill: cfg.cText, fillAlpha: 0.06 },
       placement: { stroke: cfg.cPower, alpha: 0.95, w: 1.25 * lw, fill: cfg.cPower, fillAlpha: 0.1 },
       placementLabel: { fill: cfg.cPower, fillAlpha: 1 },
       focal: { stroke: cfg.cPower, alpha: 1, w: 1.75 * lw },
@@ -121,10 +123,22 @@
     // placement preview: the selected template's boxes and the focal points
     if (cfg.showPlacements) {
       const chosen = model.placements.templates.find((t) => t.id === model.placements.selected.id);
-      chosen.items.forEach((it) => {
+      if (cfg.showSlots) chosen.items.forEach((it) => {
         const b = it.box;
         rect('placement', b.x, b.y, b.width, b.height);
         out.push({ t: 'text', role: 'placementLabel', strs: [it.role], x: b.x, y: b.y, size: 11, screen: true, align: 'left', dx: 6, dy: 15, fitWidth: b.width });
+      });
+      model.elements.items.filter((it) => !it.empty).forEach((it) => {
+        const b = it.box;
+        if (it.kind === 'asset') {
+          const src = cfg.elements.find((e) => e.id === it.id);
+          out.push({ t: 'image', role: 'asset', assetId: src && src.asset ? src.asset.id : '', name: it.asset.name || it.role, x: b.x, y: b.y, w: b.width, h: b.height, fit: it.asset.mode, nat: { w: it.asset.width || 0, h: it.asset.height || 0 }, missing: it.asset.missing });
+          rect('element', b.x, b.y, b.width, b.height, { fill: false });
+          return;
+        }
+        rect(it.fits ? 'element' : 'offgrid', b.x, b.y, b.width, b.height, { fill: false });
+        const t = it.text;
+        t.lines.forEach((l) => out.push({ t: 'text', role: 'text', str: l.text, x: l.x, y: l.y, size: t.size, weight: t.weight, family: G.fonts.stack(t.family), align: t.align }));
       });
       model.placements.focalPoints.forEach((f) => {
         out.push({ t: 'dot', role: 'focal', x: f.x, y: f.y, r: 9 });
@@ -139,7 +153,7 @@
     }
 
     // specimen
-    model.text.forEach((l) => out.push({ t: 'text', role: 'text', str: l.text, x: l.x, y: l.y, size: l.size, weight: l.weight, family: FAMILY[cfg.fontFamily], align: 'left' }));
+    model.text.forEach((l) => out.push({ t: 'text', role: 'text', str: l.text, x: l.x, y: l.y, size: l.size, weight: l.weight, family: G.fonts.stack(cfg.fontFamily), align: 'left' }));
 
     if (cfg.showPower && cfg.showPowerLabels) {
       const tag = (strs, x, y, extra) => out.push({ t: 'text', role: 'powerLabel', strs, x, y, size: 10, screen: true, align: 'center', ...extra });

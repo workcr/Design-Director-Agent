@@ -89,6 +89,11 @@
         const dash = st.dash ? ` stroke-dasharray="${st.dash.join(' ')}"` : '';
         return `<line x1="${n(p.x1)}" y1="${n(p.y1)}" x2="${n(p.x2)}" y2="${n(p.y2)}" stroke="${st.stroke}" stroke-opacity="${st.alpha}" stroke-width="${n(st.w)}"${dash}/>`;
       }
+      if (p.t === 'image') {
+        const url = G.assets && G.assets.dataUrl ? G.assets.dataUrl(p.assetId) : null;
+        if (!url) return `<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" fill="${st.fill}" fill-opacity="0.12" stroke="${st.stroke}" stroke-opacity="0.5" stroke-dasharray="4 3"/>`;
+        return `<image href="${url}" x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" preserveAspectRatio="${p.fit === 'cover' ? 'xMidYMid slice' : 'xMidYMid meet'}"/>`;
+      }
       if (p.t === 'dot') {
         const fill = st.fill ? `fill="${st.fill}"` : 'fill="none"';
         const stroke = st.stroke ? ` stroke="${st.stroke}" stroke-opacity="${st.alpha}" stroke-width="${n(st.w)}"` : '';
@@ -109,6 +114,26 @@
 
   const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 
+  /** One measured element, as plain data. */
+  function elementJson(model, it) {
+    const src = model.cfg.elements.find((e) => e.id === it.id);
+    const out = { id: it.id, role: it.role, slot: it.slot, fits: it.fits, overflow: round(it.overflow, 2), empty: Boolean(it.empty), box: it.box };
+    if (it.kind === 'text') {
+      const t = it.text;
+      out.value = src.value;
+      if (!it.empty) {
+        out.text = {
+          lineCount: t.lineCount, lines: t.lines.map((l) => l.text), firstBaseline: t.lines[0].y,
+          font: t.familyLabel, weight: t.weight, size: t.size, leading: t.leading, leadingUnits: t.leadingUnits,
+          align: t.align, stepRequested: t.stepRequested, stepUsed: t.stepUsed, steppedDown: t.steppedDown,
+        };
+      }
+    } else {
+      out.asset = { ...it.asset };
+    }
+    return out;
+  }
+
   /** Everything an agent needs to place elements on this canvas, as plain data. */
   function toPlacementsJson(model) {
     const { cfg, unit, view, power, placements, baseline, margins } = model;
@@ -127,6 +152,7 @@
       focalPoints: placements.focalPoints,
       selected: placements.selected.id,
       templates: placements.templates,
+      elements: model.elements.items.map((it) => elementJson(model, it)),
       rules: [
         `Every position, size and gap is a multiple of ${unit}px; text baselines sit on a ${baseline.step}px step.`,
         'Place an element by its anchorPoint; box edges are power lines unless onPowerLine is false.',
@@ -161,6 +187,19 @@
       `## Suggested template: ${sel.name} (${sel.id})`,
       sel.note,
       ...sel.items.map((it) => `- ${it.role}: anchor ${it.anchor} at (${it.anchorPoint.x}, ${it.anchorPoint.y}); box x ${it.box.x}, y ${it.box.y}, ${it.box.width} × ${it.box.height}px — ${it.note}`),
+      '',
+      ...(model.elements.items.length ? ['', '## Content (measured)', ...model.elements.items.map((it) => {
+        const b = it.box;
+        const at = `box x ${b.x}, y ${b.y}, ${b.width} × ${b.height}px`;
+        if (it.kind === 'asset') {
+          const a = it.asset;
+          return a.missing ? `- ${it.role}: no file yet — ${at}` : `- ${it.role} "${a.name}": ${a.width}×${a.height} source → ${at}, ${a.mode}${a.aspectError > 0.001 ? `, proportions shifted ${round(a.aspectError * 100, 1)}%` : ''}`;
+        }
+        if (it.empty) return `- ${it.role}: empty`;
+        const t = it.text;
+        const lead = t.steppedDown ? ' (stepped down to fit)' : '';
+        return `- ${it.role} "${model.cfg.elements.find((e) => e.id === it.id).value.replace(/\s+/g, ' ').slice(0, 80)}": ${t.lineCount} line${t.lineCount === 1 ? '' : 's'}, ${t.familyLabel} ${t.weight} ${t.size}/${t.leading}px${lead}, ${at}${it.fits ? '' : `, OVERFLOWS by ${round(it.overflow, 1)}px`}`;
+      })] : []),
       '',
       `Other templates for this format: ${p.available.filter((t) => t.id !== sel.id).map((t) => `${t.name} (${t.id})`).join('; ') || 'none'}.`,
       '',

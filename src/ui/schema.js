@@ -58,8 +58,9 @@
     {
       id: 'placement', title: 'Placements', open: true,
       fields: [
-        chip('showPlacements', 'Preview on canvas'),
+        chip('showPlacements', 'Preview on canvas'), chip('showSlots', 'Slot frames'),
         { key: 'placementPicker', label: 'Template', type: 'custom', hint: 'Roles snapped to power lines for this canvas shape. Export the data or a plain-language brief from the Export section.' },
+        { key: 'elements', label: 'Elements', type: 'custom' },
       ],
     },
     {
@@ -78,7 +79,7 @@
     {
       id: 'type', title: 'Typography', open: false,
       fields: [
-        { key: 'fontFamily', label: 'Typeface', type: 'select', options: [['Helvetica', 'Helvetica / Arial'], ['Georgia', 'Georgia'], ['Courier', 'Courier'], ['sans-serif', 'System sans'], ['serif', 'System serif'], ['monospace', 'System mono']] },
+        { key: 'fontFamily', label: 'Typeface', type: 'select', options: () => [...G.fonts.BUILTIN_OPTIONS, ...G.fonts.list().map((f) => [f.id, f.name])], hint: 'Upload fonts under Placements → Elements.' },
         { key: 'baseSize', label: 'Body size', type: 'range', min: 8, max: 32, step: 1, suffix: 'px' },
         { key: 'lineHeight', label: 'Body line height', type: 'range', min: 1, max: 2, step: 0.05 },
         { key: 'tighten', label: 'Heading tightening', type: 'range', min: 0, max: 0.15, step: 0.01, hint: 'Line height lost per scale step.' },

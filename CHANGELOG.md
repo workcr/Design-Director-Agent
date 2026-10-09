@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.3.0
+- **Elements**: add headline, subhead, body, CTA, legal, caption, logo and image elements with real values to the selected placement template.
+- Text is measured with the real font, set on the baseline grid, boxed on the unit grid, stacked within shared slots (subheads under headlines, legal copy hanging from the bottom margin) and can step down the type scale to fit. Per-element typeface, weight, size (scale step or px), leading, block width, alignment, spacing and slot.
+- **Font upload** (`.woff`, `.woff2`, `.ttf`, `.otf`) through the FontFace API; fonts also appear in the global Typeface menu. Re-uploading a file with the same name relinks elements after a reload.
+- **Logo / image upload** (SVG, PNG, JPEG, WebP, GIF): measured from the SVG viewBox or bitmap pixels, sized in whole units keeping the real aspect ratio (contain / cover), drawn in the preview and embedded in SVG export. Files stay in the browser; measurements persist.
+- Placements JSON and the agent brief now carry the measured content (value, line count, font, size/leading, box, fit/overflow, asset measurements).
+- Slot frames can be hidden separately from the elements.
+- 26 new tests (83 total), including a randomized check that all text lands on baselines and unit-grid boxes.
+
 ## 2.2.0
 - **Anchor placement export**: role-based placement templates per canvas shape (landscape / portrait / square) resolved onto the live power lines, with ranked focal points.
 - Canvas preview of the selected template (role boxes + focal markers) and a template picker in the new Placements section.

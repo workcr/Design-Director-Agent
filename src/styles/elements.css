@@ -1,0 +1,37 @@
+/* ---------- elements editor ---------- */
+.elements { gap: var(--space-2); }
+.elements__bar { display: grid; grid-template-columns: 1fr auto; gap: var(--space-1); }
+.elements__fonts { gap: 4px; }
+.elements__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+
+.card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+.card.is-over { border-color: var(--bad); }
+.card__head { display: flex; align-items: center; gap: 4px; padding: 6px var(--space-2); border-bottom: 1px solid var(--line); }
+.card__title { font: 600 var(--text-xs) var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; flex: 1; }
+.card__status { font: 500 var(--text-xs) var(--font-mono); color: var(--bad); }
+.icon-btn { width: 22px; height: 22px; padding: 0; background: transparent; border: 1px solid transparent; border-radius: 2px; color: var(--text-dim); cursor: pointer; line-height: 1; transition: color var(--duration-fast), border-color var(--duration-fast); }
+.icon-btn:hover { color: var(--text); border-color: var(--line-strong); }
+.card__body { display: grid; gap: var(--space-2); padding: var(--space-2); }
+
+.card textarea {
+  width: 100%; resize: vertical; min-height: 56px; padding: 6px var(--space-1);
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  font: 400 var(--text-sm) / 1.4 var(--font-ui);
+}
+.card textarea:focus { border-color: var(--focus); outline: none; }
+
+.card__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-1) var(--space-2); }
+.ef { display: grid; gap: 2px; min-width: 0; }
+.ef label { font-size: var(--text-xs); color: var(--text-faint); }
+.ef input[type="number"], .ef select { width: 100%; text-align: left; padding: 3px var(--space-1); font-size: var(--text-xs); background: var(--panel); }
+.ef input[type="number"] { font-family: var(--font-mono); }
+
+.card__check { display: flex; align-items: center; gap: var(--space-1); font-size: var(--text-xs); color: var(--text-dim); cursor: pointer; }
+.card__file { display: grid; gap: var(--space-1); }
+.card__info { margin: 0; font: 400 var(--text-xs) var(--font-mono); color: var(--text-dim); word-break: break-word; }
+.card__result { margin: 0; padding-top: var(--space-1); border-top: 1px dashed var(--line); font: 400 var(--text-xs) var(--font-mono); color: var(--text-dim); }
+.card.is-over .card__result { color: var(--bad); }
+
+.chip--font { display: inline-flex; align-items: center; gap: 6px; cursor: default; }
+.chip__x { background: none; border: 0; padding: 0 2px; color: var(--text-faint); cursor: pointer; font-size: var(--text-sm); line-height: 1; }
+.chip__x:hover { color: var(--bad); }

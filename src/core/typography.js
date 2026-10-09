@@ -105,6 +105,6 @@
     return lines;
   }
 
-  G.typography = { STEP_NAMES, SPECIMEN, snapLeading, resolveType, flowText };
+  G.typography = { CAP_HEIGHT, DESCENT, STEP_NAMES, SPECIMEN, snapLeading, resolveType, flowText };
   if (typeof module !== 'undefined') module.exports = G.typography;
 })();

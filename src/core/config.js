@@ -65,7 +65,7 @@
     showPower: true, showAnchors: true, showPowerLabels: true,
     showPowerDiagonals: false, showStripDiagonals: false,
     // placements
-    showPlacements: false, placementTemplate: 'auto',
+    showPlacements: false, placementTemplate: 'auto', showSlots: true, elements: [],
     // display
     showPixelGrid: true, majorEvery: 8, gridOpacity: 0.35,
     showBaseline: true, showCanon: true, showLadder: true, showPages: true,
@@ -76,6 +76,80 @@
   };
   delete DEFAULTS.label;
 
+  const BUILTIN_FONTS = ['Helvetica', 'Georgia', 'Courier', 'sans-serif', 'serif', 'monospace'];
+  const FONT_ID = /^gc-font-[a-z0-9-]{1,48}$/;
+  const ELEMENT_ROLES = ['headline', 'subhead', 'body', 'cta', 'legal', 'caption', 'logo', 'image'];
+  const ASSET_ROLES = ['logo', 'image'];
+  const WEIGHTS = ['300', '400', '500', '600', '700', '800'];
+  const MAX_ELEMENTS = 24;
+
+  /** Starting values per role. Sizes are steps on the type scale (0 = body). */
+  const ROLE_DEFAULTS = {
+    headline: { value: 'Your headline here', weight: '700', sizeStep: 4, spaceAfter: 1 },
+    subhead: { value: 'A supporting line', weight: '500', sizeStep: 2, spaceAfter: 1 },
+    body: { value: 'Body copy goes here. Replace it with the real text to see how it sets on the grid.', weight: '400', sizeStep: 0, spaceAfter: 1 },
+    cta: { value: 'Call to action', weight: '700', sizeStep: 1 },
+    legal: { value: 'Legal copy', weight: '400', sizeStep: -2 },
+    caption: { value: 'Caption', weight: '400', sizeStep: -1 },
+    logo: { value: '', fit: 'contain' },
+    image: { value: '', fit: 'cover' },
+  };
+
+  const ELEMENT_BASE = {
+    id: 'e1', role: 'body', value: '', font: 'inherit', fontLabel: '', weight: '400', sizeStep: 0, sizePx: 0,
+    leading: 0, spaceBefore: 0, spaceAfter: 0, align: 'left', widthUnits: 0, autoFit: true,
+    slot: 'auto', fit: 'cover', asset: null,
+  };
+
+  /** A complete element for `role`, with optional overrides. */
+  const makeElement = (role, id, patch = {}) => ({ ...ELEMENT_BASE, ...ROLE_DEFAULTS[role], ...patch, role, id });
+
+  const int = (v, lo, hi, fallback) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? clamp(n, lo, hi) : fallback;
+  };
+  const text = (v, max) => String(v === undefined || v === null ? '' : v).slice(0, max);
+
+  function sanitizeAsset(a) {
+    if (!a || typeof a !== 'object') return null;
+    const width = Number(a.width);
+    const height = Number(a.height);
+    if (!(width > 0 && height > 0) || width > 100000 || height > 100000) return null;
+    return {
+      id: text(a.id, 40).replace(/[^a-z0-9-]/gi, ''), name: text(a.name, 120),
+      kind: a.kind === 'svg' ? 'svg' : 'bitmap', width, height,
+    };
+  }
+
+  function sanitizeElement(raw, taken) {
+    if (!raw || typeof raw !== 'object' || !ELEMENT_ROLES.includes(raw.role)) return null;
+    const base = makeElement(raw.role, 'e1');
+    let id = typeof raw.id === 'string' && /^[a-z0-9-]{1,24}$/.test(raw.id) ? raw.id : 'e1';
+    for (let n = 2; taken.has(id); n++) id = `e${n}`;
+    taken.add(id);
+    const pick = (list, v, d) => (list.includes(String(v)) ? String(v) : d);
+    const font = String(raw.font);
+    return {
+      id, role: raw.role, value: text(raw.value, 4000),
+      font: font === 'inherit' || BUILTIN_FONTS.includes(font) || FONT_ID.test(font) ? font : 'inherit',
+      fontLabel: text(raw.fontLabel, 80), weight: pick(WEIGHTS, raw.weight, base.weight),
+      sizeStep: int(raw.sizeStep, -4, 12, base.sizeStep),
+      sizePx: raw.sizePx === 0 ? 0 : int(raw.sizePx, 6, 400, 0),
+      leading: int(raw.leading, 0, 48, 0), spaceBefore: int(raw.spaceBefore, 0, 12, 0), spaceAfter: int(raw.spaceAfter, 0, 12, 0),
+      align: pick(['left', 'center', 'right'], raw.align, 'left'), widthUnits: int(raw.widthUnits, 0, 400, 0),
+      autoFit: raw.autoFit === undefined ? true : Boolean(raw.autoFit),
+      slot: typeof raw.slot === 'string' && /^[a-z0-9-]{1,24}$/.test(raw.slot) ? raw.slot : 'auto',
+      fit: pick(['cover', 'contain'], raw.fit, base.fit),
+      asset: ASSET_ROLES.includes(raw.role) ? sanitizeAsset(raw.asset) : null,
+    };
+  }
+
+  function sanitizeElements(list) {
+    if (!Array.isArray(list)) return [];
+    const taken = new Set();
+    return list.slice(0, MAX_ELEMENTS).map((e) => sanitizeElement(e, taken)).filter(Boolean);
+  }
+
   const oneOf = (list) => ['enum', list];
   const RULES = {
     unit: ['int', 1, 64], width: ['int', 16, 10000], height: ['int', 16, 10000],
@@ -85,7 +159,7 @@
     columns: ['int', 1, 24], gutter: ['int', 0, 16], rows: ['int', 1, 24], rowGutter: ['int', 0, 16],
     fitColumns: ['bool'], fitRows: ['bool'], moduleSnap: ['bool'],
     fitAnchor: oneOf(['inner', 'outer', 'center']),
-    fontFamily: oneOf(['Helvetica', 'Georgia', 'Courier', 'sans-serif', 'serif', 'monospace']),
+    fontFamily: ['font'],
     baseSize: ['num', 6, 96], lineHeight: ['num', 1, 3], tighten: ['num', 0, 0.2],
     scaleRatio: oneOf(Object.keys(RATIOS)), stepsDown: ['int', 0, 4], stepsUp: ['int', 1, 9],
     roundSizes: ['bool'], baselineMode: oneOf(['leading', 'unit', 'custom']),
@@ -93,7 +167,7 @@
     baselineScope: oneOf(['canvas', 'blocks']),
     powerDepth: ['int', 1, 5], powerBase2: ['bool'], powerBase3: ['bool'], powerBase5: ['bool'],
     powerMargin: ['int', 0, 24], powerSnap: ['bool'], anchorMode: oneOf(['diagonal', 'all']),
-    showPlacements: ['bool'], placementTemplate: ['id'],
+    showPlacements: ['bool'], placementTemplate: ['id'], showSlots: ['bool'], elements: ['elements'],
     showPower: ['bool'], showAnchors: ['bool'], showPowerLabels: ['bool'],
     showPowerDiagonals: ['bool'], showStripDiagonals: ['bool'],
     showPixelGrid: ['bool'], majorEvery: ['int', 2, 32], gridOpacity: ['num', 0.05, 1],
@@ -117,6 +191,8 @@
         const n = Number(raw);
         out[key] = Number.isFinite(n) ? clamp(kind === 'int' ? Math.round(n) : n, a, b) : DEFAULTS[key];
       } else if (kind === 'bool') out[key] = Boolean(raw);
+      else if (kind === 'elements') out[key] = sanitizeElements(raw);
+      else if (kind === 'font') out[key] = BUILTIN_FONTS.includes(String(raw)) || FONT_ID.test(String(raw)) ? String(raw) : DEFAULTS[key];
       else if (kind === 'id') out[key] = /^[a-z0-9-]{1,40}$/.test(String(raw)) ? String(raw) : DEFAULTS[key];
       else if (kind === 'enum') out[key] = a.includes(String(raw)) ? String(raw) : DEFAULTS[key];
       else out[key] = /^#[0-9a-f]{6}$/i.test(raw) ? raw : DEFAULTS[key];
@@ -147,6 +223,8 @@
     return { patch: { ...restore }, saved };
   }
 
-  G.config = { DEFAULTS, RULES, RATIOS, THEMES, PRESETS, GUIDE_KEYS, guidesVisible, toggleGuides, normalize };
+  G.config = {
+    DEFAULTS, RULES, RATIOS, THEMES, PRESETS, BUILTIN_FONTS, FONT_ID, ELEMENT_ROLES, ASSET_ROLES, WEIGHTS, ROLE_DEFAULTS, MAX_ELEMENTS,
+    makeElement, sanitizeElements, GUIDE_KEYS, guidesVisible, toggleGuides, normalize };
   if (typeof module !== 'undefined') module.exports = G.config;
 })();
