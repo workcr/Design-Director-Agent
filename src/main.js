@@ -10,6 +10,7 @@
   let model = null;
   let scene = [];
   let toastTimer = 0;
+  let savedGuides = null;
 
   const say = (message) => {
     toast.textContent = message;
@@ -48,6 +49,11 @@
     svg() { download(`${slug()}.svg`, new Blob([G.exporters.toSvg(model, scene)], { type: 'image/svg+xml' })); say('SVG exported'); },
     json() { download(`${slug()}.json`, new Blob([JSON.stringify(G.exporters.toJson(model), null, 2)], { type: 'application/json' })); say('JSON exported'); },
     async css() { say((await copyText(G.exporters.toCss(model))) ? 'CSS tokens copied' : 'Copy failed — clipboard blocked'); },
+    guides() {
+      const result = G.config.toggleGuides(store.get(), savedGuides);
+      savedGuides = result.saved;
+      store.patch(result.patch);
+    },
     reset() { store.reset(); say('Reset to defaults'); },
   };
 
@@ -63,6 +69,7 @@
       renderer.show(model, scene);
       panel.update(model.cfg, model);
       readout.update(model);
+      $('#guides-toggle').setAttribute('aria-pressed', String(G.config.guidesVisible(model.cfg)));
       $('#canvas-meta').textContent = `${model.view.width} × ${model.view.height} px · ${model.unit}px unit · D${model.cfg.divisions}`;
     } catch (err) {
       readout.fail(err);
@@ -72,6 +79,12 @@
 
   store.subscribe(() => { if (!frame) frame = window.requestAnimationFrame(recompute); });
   recompute();
+
+  $('#guides-toggle').addEventListener('click', actions.guides);
+  document.addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'range' && e.target.type !== 'checkbox';
+    if (e.key.toLowerCase() === 'g' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) actions.guides();
+  });
 
   $('#panel-toggle').addEventListener('click', (e) => {
     const app = $('.app');

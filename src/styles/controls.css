@@ -124,3 +124,6 @@ input[type="color"]::-webkit-color-swatch { border: 0; }
 .btn:active { background: var(--text); color: var(--bg); }
 .btn--danger { color: var(--bad); }
 .btn--ghost { background: transparent; border-color: var(--line); padding: 4px var(--space-2); font-size: var(--text-xs); }
+.btn--ghost[aria-pressed="false"] { color: var(--text-faint); }
+.btn--ghost[aria-pressed="true"] { border-color: var(--text-dim); }
+kbd { margin-left: 4px; padding: 0 4px; font: 500 var(--text-xs) var(--font-mono); color: var(--text-faint); border: 1px solid var(--line-strong); border-radius: 2px; }

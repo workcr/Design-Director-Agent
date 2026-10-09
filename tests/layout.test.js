@@ -121,3 +121,27 @@ test('exporters produce parseable output', () => {
   assert.match(svg, /^<svg /);
   assert.match(svg, /<\/svg>\n$/);
 });
+
+test('toggleGuides hides every guide, then restores the previous mix', () => {
+  const { toggleGuides, guidesVisible, GUIDE_KEYS } = G.config;
+  const cfg = normalize({ showLadder: false, showGutters: true });
+  const off = toggleGuides(cfg, null);
+  assert.ok(GUIDE_KEYS.every((k) => off.patch[k] === false));
+  assert.equal(guidesVisible(normalize({ ...cfg, ...off.patch })), false);
+  const on = toggleGuides(normalize({ ...cfg, ...off.patch }), off.saved);
+  assert.equal(on.patch.showLadder, false);
+  assert.equal(on.patch.showGutters, true);
+  assert.equal(on.patch.showPixelGrid, true);
+});
+
+test('toggleGuides falls back to defaults when nothing was saved', () => {
+  const { toggleGuides, GUIDE_KEYS } = G.config;
+  const allOff = normalize(Object.fromEntries(GUIDE_KEYS.map((k) => [k, false])));
+  const on = toggleGuides(allOff, null);
+  assert.equal(on.patch.showPixelGrid, true);
+  assert.equal(on.patch.showGutters, false); // default is off
+});
+
+test('guide toggle leaves the specimen text alone', () => {
+  assert.ok(!G.config.GUIDE_KEYS.includes('showSpecimen'));
+});

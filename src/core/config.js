@@ -111,6 +111,28 @@
     return out;
   }
 
-  G.config = { DEFAULTS, RULES, RATIOS, THEMES, PRESETS, normalize };
+  /** Every overlay that draws lines or boxes (the specimen text is content, not a guide). */
+  const GUIDE_KEYS = [
+    'showPixelGrid', 'showBaseline', 'showPages', 'showCanon', 'showLadder', 'showIdeal',
+    'showBlocks', 'showColumns', 'showGutters', 'showLabels',
+  ];
+
+  const guidesVisible = (cfg) => GUIDE_KEYS.some((k) => cfg[k]);
+
+  /**
+   * Master switch. If any guide is on, turns them all off and remembers the mix;
+   * if all are off, restores the remembered mix (or the defaults).
+   * Returns { patch, saved }.
+   */
+  function toggleGuides(cfg, saved) {
+    const pick = (src) => Object.fromEntries(GUIDE_KEYS.map((k) => [k, src[k]]));
+    if (guidesVisible(cfg)) {
+      return { patch: Object.fromEntries(GUIDE_KEYS.map((k) => [k, false])), saved: pick(cfg) };
+    }
+    const restore = saved && GUIDE_KEYS.some((k) => saved[k]) ? saved : pick(DEFAULTS);
+    return { patch: { ...restore }, saved };
+  }
+
+  G.config = { DEFAULTS, RULES, RATIOS, THEMES, PRESETS, GUIDE_KEYS, guidesVisible, toggleGuides, normalize };
   if (typeof module !== 'undefined') module.exports = G.config;
 })();
