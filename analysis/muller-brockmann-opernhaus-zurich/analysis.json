@@ -1,0 +1,250 @@
+{
+ "version": 1,
+ "width": 1416,
+ "height": 2000,
+ "ratio": 0.708,
+ "coverage": 0.0735,
+ "confidence": 1,
+ "warnings": [],
+ "blocks": [
+  {
+   "id": 0,
+   "lines": 2,
+   "align": "left",
+   "size": 178.8,
+   "ascent": 128,
+   "xHeight": 91,
+   "leading": 174,
+   "leadingRatio": 0.973,
+   "left": 480,
+   "right": 1121.5,
+   "top": 52,
+   "bottom": 356,
+   "polarity": "dark",
+   "allCaps": false
+  },
+  {
+   "id": 1,
+   "lines": 2,
+   "align": "right",
+   "size": 189.2,
+   "ascent": 135.5,
+   "xHeight": 97,
+   "leading": 180,
+   "leadingRatio": 0.951,
+   "left": 325.5,
+   "right": 945,
+   "top": 539,
+   "bottom": 856,
+   "polarity": "light",
+   "allCaps": false
+  },
+  {
+   "id": 2,
+   "lines": 1,
+   "align": "single",
+   "size": 34.9,
+   "ascent": 25,
+   "xHeight": 17,
+   "leading": 0,
+   "leadingRatio": 0,
+   "left": 481,
+   "right": 904,
+   "top": 921,
+   "bottom": 952,
+   "polarity": "dark",
+   "allCaps": false
+  },
+  {
+   "id": 3,
+   "lines": 3,
+   "align": "left",
+   "size": 34.9,
+   "ascent": 25,
+   "xHeight": 17,
+   "leading": 36,
+   "leadingRatio": 1.031,
+   "left": 482,
+   "right": 921,
+   "top": 993,
+   "bottom": 1090,
+   "polarity": "dark",
+   "allCaps": false
+  },
+  {
+   "id": 4,
+   "lines": 8,
+   "align": "left",
+   "size": 33.5,
+   "ascent": 24,
+   "xHeight": 16,
+   "leading": 36,
+   "leadingRatio": 1.074,
+   "left": 483,
+   "right": 727,
+   "top": 1138,
+   "bottom": 1414,
+   "polarity": "dark",
+   "allCaps": false
+  },
+  {
+   "id": 5,
+   "lines": 9,
+   "align": "left",
+   "size": 33.5,
+   "ascent": 24,
+   "xHeight": 16,
+   "leading": 36,
+   "leadingRatio": 1.074,
+   "left": 482,
+   "right": 856,
+   "top": 1462,
+   "bottom": 1779,
+   "polarity": "dark",
+   "allCaps": false
+  }
+ ],
+ "clusters": [
+  {
+   "id": 0,
+   "size": 189.2,
+   "ascent": 135.5,
+   "xHeight": 97,
+   "blocks": [
+    1
+   ],
+   "lines": 2,
+   "leading": 180,
+   "leadingRatio": 0.951,
+   "ratioToBody": 5.598,
+   "role": "display"
+  },
+  {
+   "id": 1,
+   "size": 178.8,
+   "ascent": 128,
+   "xHeight": 91,
+   "blocks": [
+    0
+   ],
+   "lines": 2,
+   "leading": 174,
+   "leadingRatio": 0.973,
+   "ratioToBody": 5.29,
+   "role": "display"
+  },
+  {
+   "id": 2,
+   "size": 33.8,
+   "ascent": 24.2,
+   "xHeight": 16.5,
+   "blocks": [
+    4,
+    5,
+    2,
+    3
+   ],
+   "lines": 21,
+   "leading": 36,
+   "leadingRatio": 1.066,
+   "ratioToBody": 1,
+   "role": "body"
+  }
+ ],
+ "baseline": {
+  "step": 36,
+  "offset": 9,
+  "lines": 21,
+  "onGrid": 21,
+  "confidence": 1,
+  "sizeRatio": 1.065
+ },
+ "axes": [
+  {
+   "side": "left",
+   "x": 482,
+   "fraction": 0.3404,
+   "fragments": 23,
+   "blocks": 5,
+   "match": {
+    "label": "1/3",
+    "pos": 472,
+    "deviation": 10,
+    "deviationPct": 0.71,
+    "chance": 0.119,
+    "strength": "near"
+   }
+  },
+  {
+   "side": "right",
+   "x": 944,
+   "fraction": 0.6667,
+   "fragments": 3,
+   "blocks": 2,
+   "match": {
+    "label": "2/3",
+    "pos": 944,
+    "deviation": 0,
+    "deviationPct": 0,
+    "chance": 0.006,
+    "strength": "strong"
+   }
+  }
+ ],
+ "extremes": {
+  "left": {
+   "x": 184,
+   "fraction": 0.1299,
+   "match": {
+    "label": "1/8",
+    "pos": 177,
+    "deviation": 7,
+    "deviationPct": 0.49,
+    "chance": 0.254,
+    "strength": "near"
+   }
+  },
+  "right": {
+   "x": 1299,
+   "fraction": 0.9174,
+   "match": {
+    "label": "11/12",
+    "pos": 1298,
+    "deviation": 1,
+    "deviationPct": 0.07,
+    "chance": 0.068,
+    "strength": "strong"
+   }
+  },
+  "top": {
+   "y": 52,
+   "fraction": 0.026,
+   "match": {
+    "label": "1/24",
+    "pos": 83.3,
+    "deviation": -31.3,
+    "deviationPct": -1.57,
+    "chance": 1,
+    "strength": "none"
+   }
+  },
+  "bottom": {
+   "y": 1773,
+   "fraction": 0.8865,
+   "match": {
+    "label": "7/8",
+    "pos": 1750,
+    "deviation": 23,
+    "deviationPct": 1.15,
+    "chance": 0.564,
+    "strength": "none"
+   }
+  }
+ },
+ "micro": {
+  "fragments": 2,
+  "left": 480,
+  "right": 542,
+  "baseline": 1983
+ }
+}

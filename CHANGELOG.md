@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.4.0
+- **Reference layouts**: upload a poster or page and the tool reports its vertical axes (with nearest power line and chance-of-hit), baseline grid (step, offset, lines on grid), type sizes with leading and ratios, and ink margins. Analysis runs locally on a luminance raster: ink mask with a per-pixel background estimate and symmetric light/dark thresholds, line segmentation that keeps solid-set lines apart, block grouping, size clustering and a least-squares baseline fit.
+- *Use as canvas* recreates the reference's size, unit, baseline grid and leading; *Underlay* and *Detected* overlays draw the photo and the findings on the canvas.
+- **Style library**: file works under designers; each work becomes scale-free features and a designer's profile is the pooled statistics of their works (confidence grows with each work). Closest-style hints (needs 2+ works), *Apply style* (settings + axes drawn on canvas), export / import with strict validation, saved in the browser. The applied style is included in the placements JSON and the agent brief.
+- **Optional local vision model** through Ollama (localhost only, vision-capable models only): transcription, block roles, typeface family, style tags. Output is validated; designer guesses are hints, never used to file a work.
+- **Solid leading**: *Tightest leading* (Solid 1.0 / Tight 1.05 / Open 1.2) so 36/36 setting is possible.
+- **Baseline offset**: shifts the whole baseline grid for layouts whose grid does not start at the page edge.
+- 40 new tests (123 total), including synthetic rasters with known geometry and a check that every scene role has a style.
+
 ## 2.3.0
 - **Elements**: add headline, subhead, body, CTA, legal, caption, logo and image elements with real values to the selected placement template.
 - Text is measured with the real font, set on the baseline grid, boxed on the unit grid, stacked within shared slots (subheads under headlines, legal copy hanging from the bottom margin) and can step down the type scale to fit. Per-element typeface, weight, size (scale step or px), leading, block width, alignment, spacing and slot.

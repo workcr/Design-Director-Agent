@@ -11,10 +11,10 @@
   const CAP_HEIGHT = 0.75; // approximate ascent used to place the first baseline
   const DESCENT = 0.25;
 
-  /** Leading in units: a multiple of the baseline step, never tighter than 1.05×size. */
-  function snapLeading(rawUnits, step, sizeUnits) {
+  /** Leading in units: a multiple of the baseline step, never tighter than `minRatio` × size (1 = solid). */
+  function snapLeading(rawUnits, step, sizeUnits, minRatio = 1.05) {
     let units = Math.max(1, Math.round(rawUnits / step)) * step;
-    while (units < sizeUnits * 1.05 - EPS) units += step;
+    while (units < sizeUnits * minRatio - EPS) units += step;
     return units;
   }
 
@@ -29,7 +29,7 @@
       const raw = cfg.baseSize * ratio ** step;
       const size = cfg.roundSizes ? Math.max(1, Math.round(raw)) : round(raw, 2);
       const lh = clamp(cfg.lineHeight - cfg.tighten * Math.max(step, 0), 1, 3);
-      const leadingUnits = snapLeading((size * lh) / u, baselineUnits, size / u);
+      const leadingUnits = snapLeading((size * lh) / u, baselineUnits, size / u, cfg.minLeading);
       scale.push({
         step, name: STEP_NAMES[step] || `s${step}`, size, leadingUnits, leading: leadingUnits * u,
         lineHeight: round((leadingUnits * u) / size, 3), weight: step > 0 ? 'bold' : 'normal',

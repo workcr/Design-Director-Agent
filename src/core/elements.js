@@ -85,7 +85,7 @@
     const byStep = (s) => scale[clamp(s - scale[0].step, 0, scale.length - 1)];
     const lead = (units) => (el.leading > 0 ? Math.ceil(el.leading / baseline.units) * baseline.units : units);
     if (el.sizePx > 0) {
-      const units = snapLeading((el.sizePx * cfg.lineHeight) / cfg.unit, baseline.units, el.sizePx / cfg.unit);
+      const units = snapLeading((el.sizePx * cfg.lineHeight) / cfg.unit, baseline.units, el.sizePx / cfg.unit, cfg.minLeading);
       return [{ size: el.sizePx, leadingUnits: lead(units), step: null }];
     }
     const start = clamp(el.sizeStep, scale[0].step, scale[scale.length - 1].step);

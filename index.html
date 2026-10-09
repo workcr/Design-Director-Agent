@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="src/styles/layout.css">
   <link rel="stylesheet" href="src/styles/controls.css">
   <link rel="stylesheet" href="src/styles/elements.css">
+  <link rel="stylesheet" href="src/styles/drawer.css">
 </head>
 <body>
   <div class="app" data-panel="open">
@@ -22,6 +23,7 @@
           <h1>Grid Calculator</h1>
         </div>
         <p class="stage__meta" id="canvas-meta" aria-live="polite"></p>
+        <button class="btn btn--ghost" id="drawer-toggle" type="button" aria-controls="drawer" title="Analyse a reference layout and manage the style library">Reference</button>
         <button class="btn btn--ghost" id="guides-toggle" type="button" aria-pressed="true" title="Show or hide all guides (G)">Guides <kbd>G</kbd></button>
         <button class="btn btn--ghost" id="panel-toggle" type="button" aria-controls="panel" aria-expanded="true">Controls</button>
       </header>
@@ -50,6 +52,10 @@
   <script src="src/core/columns.js"></script>
   <script src="src/core/powerlines.js"></script>
   <script src="src/core/placement.js"></script>
+  <script src="src/core/reference.js"></script>
+  <script src="src/core/styles.js"></script>
+  <script src="src/core/semantic.js"></script>
+  <script src="src/core/library.js"></script>
   <script src="src/core/typography.js"></script>
   <script src="src/core/elements.js"></script>
   <script src="src/core/model.js"></script>
@@ -60,6 +66,11 @@
   <script src="src/ui/uploads.js"></script>
   <script src="src/ui/panel.js"></script>
   <script src="src/ui/elements.js"></script>
+  <script src="src/ui/library-store.js"></script>
+  <script src="src/ui/localmodel.js"></script>
+  <script src="src/ui/reference-loader.js"></script>
+  <script src="src/ui/library-panel.js"></script>
+  <script src="src/ui/reference-panel.js"></script>
   <script src="src/ui/readout.js"></script>
   <script src="src/render/p5-renderer.js"></script>
   <script src="src/main.js"></script>

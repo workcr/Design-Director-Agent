@@ -9,6 +9,9 @@
   const { isOnGrid, round, toUnits } = G.math;
 
   const OFFGRID = '#ff3b30';
+  const REF_COLOUR = '#ff2db9';
+  const REF_BASELINE = '#ffd60a';
+  const STYLE_COLOUR = '#5cf08a';
 
   /** role → visual style. `w` is a multiplier of cfg.lineWeight. */
   function roleStyles(cfg) {
@@ -34,6 +37,13 @@
       anchorStrong: { fill: cfg.cPower, fillAlpha: 1, stroke: cfg.cBg, alpha: 0.9, w: 1.25 * lw },
       anchor: { stroke: cfg.cPower, alpha: 0.9, w: 1.25 * lw },
       powerLabel: { fill: cfg.cPower, fillAlpha: 1 },
+      refAxis: { stroke: REF_COLOUR, alpha: 0.95, w: 1.25 * lw, dash: [6, 3] },
+      refBaseline: { stroke: REF_BASELINE, alpha: 0.8, w: 0.75 * lw },
+      refBlock: { stroke: REF_COLOUR, alpha: 0.8, w: lw },
+      refLabel: { fill: REF_COLOUR, fillAlpha: 1 },
+      styleAxis: { stroke: STYLE_COLOUR, alpha: 0.95, w: 1.25 * lw, dash: [2, 4] },
+      styleLabel: { fill: STYLE_COLOUR, fillAlpha: 1 },
+      reference: { stroke: cfg.cText, alpha: 0.5, w: lw, fill: cfg.cText, fillAlpha: 0.06 },
       element: { stroke: cfg.cText, alpha: 0.45, w: 0.75 * lw, dash: [3, 3] },
       asset: { stroke: cfg.cText, alpha: 0.5, w: lw, fill: cfg.cText, fillAlpha: 0.06 },
       placement: { stroke: cfg.cPower, alpha: 0.95, w: 1.25 * lw, fill: cfg.cPower, fillAlpha: 0.1 },
@@ -52,6 +62,12 @@
     const line = (role, x1, y1, x2, y2) => out.push({ t: 'line', role, x1, y1, x2, y2 });
     const rect = (role, x, y, w, h, extra) => out.push({ t: 'rect', role, x, y, w, h, ...extra });
     const label = (strs, x, y, extra) => out.push({ t: 'text', role: 'label', strs, x, y, size: 10.5, screen: true, align: 'center', ...extra });
+
+    // reference image underneath everything
+    const { reference, style } = model;
+    if (cfg.showReference && reference && reference.assetId) {
+      out.push({ t: 'image', role: 'reference', assetId: reference.assetId, x: 0, y: 0, w: view.width, h: view.height, fit: 'cover', alpha: cfg.referenceOpacity, name: reference.name || 'reference', nat: { w: reference.analysis.width, h: reference.analysis.height }, missing: false });
+    }
 
     // pixel grid
     if (cfg.showPixelGrid) {
@@ -118,6 +134,39 @@
         const on = [b.x, b.y, b.w, b.h].every((v) => isOnGrid(v, u));
         rect(!on && cfg.showOffGrid ? 'offgrid' : 'block', b.x, b.y, b.w, b.h, { fill: false });
       });
+    }
+
+    // what the analysis found in the reference: axes, baseline grid, text blocks (scaled to this canvas)
+    if (cfg.showDetected && reference && reference.analysis) {
+      const a = reference.analysis;
+      const sx = view.width / a.width;
+      const sy = view.height / a.height;
+      a.blocks.forEach((b) => rect('refBlock', b.left * sx, b.top * sy, (b.right - b.left) * sx, (b.bottom - b.top) * sy, { fill: false }));
+      if (a.baseline) {
+        const body = a.clusters.find((c) => c.role === 'body');
+        const mine = a.blocks.filter((b) => body && body.blocks.includes(b.id));
+        if (mine.length) {
+          const x0 = Math.min(...mine.map((b) => b.left)) * sx;
+          const x1 = Math.max(...mine.map((b) => b.right)) * sx;
+          const lo = Math.min(...mine.map((b) => b.top));
+          const hi = Math.max(...mine.map((b) => b.bottom));
+          const k0 = Math.ceil((lo - a.baseline.offset) / a.baseline.step);
+          for (let y = a.baseline.offset + k0 * a.baseline.step; y <= hi; y += a.baseline.step) line('refBaseline', x0, y * sy, x1, y * sy);
+        }
+      }
+      a.axes.forEach((x) => {
+        line('refAxis', x.x * sx, 0, x.x * sx, view.height);
+        out.push({ t: 'text', role: 'refLabel', strs: [`${x.match.strength !== 'none' ? `${x.match.label} · ` : ''}${Math.round(x.x * sx)}`], x: x.x * sx, y: 0, size: 10.5, screen: true, align: 'left', dx: 5, dy: 14 });
+      });
+    }
+
+    // axes of the applied designer style
+    if (cfg.showStyleAxes && style) {
+      style.axes.forEach((x) => {
+        line('styleAxis', x.fraction * view.width, 0, x.fraction * view.width, view.height);
+        out.push({ t: 'text', role: 'styleLabel', strs: [x.label || `${Math.round(x.fraction * 100)}%`], x: x.fraction * view.width, y: view.height, size: 10.5, screen: true, align: 'left', dx: 5, dy: -8 });
+      });
+      if (style.axes.length) out.push({ t: 'text', role: 'styleLabel', strs: [`Style: ${style.name}`], x: 0, y: view.height, size: 10.5, screen: true, align: 'left', dx: 6, dy: -24 });
     }
 
     // placement preview: the selected template's boxes and the focal points

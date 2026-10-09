@@ -6,6 +6,15 @@
   const store = G.ui.createStore();
   const renderer = G.render.createRenderer($('#canvas-host'), $('#viewport'));
   const readout = G.ui.createReadout($('#readout'));
+  const library = G.ui.createLibraryStore();
+
+  /** Session-only context the model needs besides the saved settings: the uploaded reference. */
+  const session = {
+    reference: null,
+    listeners: new Set(),
+    set(ref) { this.reference = ref; this.listeners.forEach((fn) => fn()); },
+    onChange(fn) { this.listeners.add(fn); },
+  };
   const toast = $('#toast');
   let model = null;
   let scene = [];
@@ -64,6 +73,11 @@
   };
 
   G.ui.say = say;
+  const drawer = G.ui.createReferenceDrawer({ store, library, session, say });
+  document.body.append(drawer.node);
+  const recomputeSoon = () => store.patch({});
+  session.onChange(recomputeSoon);
+  library.subscribe(recomputeSoon);
   G.assets.onChange(() => renderer.redraw());
   G.fonts.onChange(() => store.patch({}));
 
@@ -74,10 +88,11 @@
     frame = 0;
     try {
       const cfg = store.get();
-      model = G.model.buildModel(cfg, renderer.measure);
+      model = G.model.buildModel(cfg, renderer.measure, { reference: session.reference, style: cfg.styleId ? G.library.styleContext(library.get(), cfg.styleId) : null });
       scene = G.scene.buildScene(model);
       renderer.show(model, scene);
       panel.update(model.cfg, model);
+      drawer.sync(model.cfg);
       readout.update(model);
       $('#guides-toggle').setAttribute('aria-pressed', String(G.config.guidesVisible(model.cfg)));
       $('#canvas-meta').textContent = `${model.view.width} × ${model.view.height} px · ${model.unit}px unit · D${model.cfg.divisions}`;
@@ -91,6 +106,7 @@
   recompute();
 
   $('#guides-toggle').addEventListener('click', actions.guides);
+  $('#drawer-toggle').addEventListener('click', drawer.toggle);
   document.addEventListener('keydown', (e) => {
     const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) && e.target.type !== 'range' && e.target.type !== 'checkbox';
     if (e.key.toLowerCase() === 'g' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) actions.guides();

@@ -145,3 +145,26 @@ test('toggleGuides falls back to defaults when nothing was saved', () => {
 test('guide toggle leaves the specimen text alone', () => {
   assert.ok(!G.config.GUIDE_KEYS.includes('showSpecimen'));
 });
+
+test('solid leading: 36px type on a 36px step can have 36px leading, the default cannot', () => {
+  assert.equal(snapLeading(9, 9, 9, 1.0), 9);
+  assert.equal(snapLeading(9, 9, 9), 18); // default keeps the 1.05 safety margin
+  const solid = resolveType(normalize({ unit: 4, baseSize: 36, lineHeight: 1, baselineMode: 'custom', baselineCustom: 9, tighten: 0, minLeading: 1 }));
+  assert.equal(solid.styles.p.leading, 36);
+  assert.equal(solid.scale.every((s) => s.leadingUnits % 9 === 0), true);
+  const tight = resolveType(normalize({ unit: 4, baseSize: 36, lineHeight: 1, baselineMode: 'custom', baselineCustom: 9, tighten: 0 }));
+  assert.equal(tight.styles.p.leading, 72);
+});
+
+test('baseline offset shifts the whole grid, specimen and elements included', () => {
+  const plain = buildModel({}, measure);
+  const shifted = buildModel({ baselineOffset: 10 }, measure);
+  assert.equal(shifted.baseline.origin - plain.baseline.origin, 10);
+  assert.equal(shifted.baseline.ys[0], 10 % shifted.baseline.step);
+  shifted.text.forEach((l) => {
+    const k = (l.y - shifted.baseline.origin) / shifted.baseline.step;
+    assert.ok(Math.abs(k - Math.round(k)) < 1e-9);
+  });
+  assert.equal(normalize({ baselineOffset: 9999 }).baselineOffset, 400);
+  assert.equal(normalize({ minLeading: 0.2 }).minLeading, 1);
+});

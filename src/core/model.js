@@ -60,7 +60,8 @@
     return out;
   }
 
-  function buildModel(rawCfg, measure) {
+  /** `extras` carries session-only context: { reference: {assetId, analysis}, style: {...} }. */
+  function buildModel(rawCfg, measure, extras = {}) {
     const { normalize } = G.config;
     const cfg = normalize(rawCfg);
     const canon = G.canon.computeCanon(cfg);
@@ -68,7 +69,7 @@
     const power = G.powerlines.computePowerLines(cfg, canon.view);
     const placements = G.placement.buildPlacements(power, canon.view, cfg);
     const grids = canon.blocks.map((b) => G.columns.layoutBlockGrid(b, cfg, type.baselineUnits));
-    const origin = cfg.baselineOrigin === 'block' && canon.blocks.length ? canon.blocks[0].y : 0;
+    const origin = (cfg.baselineOrigin === 'block' && canon.blocks.length ? canon.blocks[0].y : 0) + cfg.baselineOffset;
     const baseline = {
       units: type.baselineUnits, step: type.baselineStep, origin,
       ys: baselineLines(cfg, canon.view, origin, type.baselineStep),
@@ -90,7 +91,7 @@
       })
       : [];
 
-    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, placements, elements, grids, type, baseline, text };
+    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, placements, elements, reference: extras.reference || null, style: extras.style || null, grids, type, baseline, text };
     model.integrity = scoreIntegrity(model);
     model.alignedDivisions = alignedDivisions(cfg, power);
 

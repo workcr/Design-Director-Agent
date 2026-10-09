@@ -91,7 +91,9 @@
         }
       } else if (p.t === 'image') {
         const img = p.assetId ? G.assets.image(p.assetId) : null;
+        if (p.role === 'reference' && !(img && img.naturalWidth)) continue;
         ctx.save();
+        if (p.alpha !== undefined) ctx.globalAlpha = p.alpha;
         ctx.beginPath();
         ctx.rect(p.x, p.y, p.w, p.h);
         ctx.clip();

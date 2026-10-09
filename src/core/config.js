@@ -58,7 +58,7 @@
     // typography
     fontFamily: 'Helvetica', baseSize: 16, lineHeight: 1.5, tighten: 0.07,
     scaleRatio: 'majorThird', stepsDown: 2, stepsUp: 6, roundSizes: true,
-    baselineMode: 'leading', baselineCustom: 3, baselineOrigin: 'canvas', baselineScope: 'canvas',
+    baselineMode: 'leading', baselineCustom: 3, baselineOrigin: 'canvas', baselineOffset: 0, baselineScope: 'canvas', minLeading: 1.05,
     // power lines & anchors
     powerDepth: 3, powerBase2: true, powerBase3: true, powerBase5: false,
     powerMargin: 5, powerSnap: true, anchorMode: 'diagonal',
@@ -66,6 +66,8 @@
     showPowerDiagonals: false, showStripDiagonals: false,
     // placements
     showPlacements: false, placementTemplate: 'auto', showSlots: true, elements: [],
+    // reference layouts & styles
+    showReference: false, referenceOpacity: 0.5, showDetected: false, showStyleAxes: true, styleId: '',
     // display
     showPixelGrid: true, majorEvery: 8, gridOpacity: 0.35,
     showBaseline: true, showCanon: true, showLadder: true, showPages: true,
@@ -163,10 +165,11 @@
     baseSize: ['num', 6, 96], lineHeight: ['num', 1, 3], tighten: ['num', 0, 0.2],
     scaleRatio: oneOf(Object.keys(RATIOS)), stepsDown: ['int', 0, 4], stepsUp: ['int', 1, 9],
     roundSizes: ['bool'], baselineMode: oneOf(['leading', 'unit', 'custom']),
-    baselineCustom: ['int', 1, 24], baselineOrigin: oneOf(['canvas', 'block']),
+    baselineCustom: ['int', 1, 24], baselineOrigin: oneOf(['canvas', 'block']), baselineOffset: ['int', 0, 400], minLeading: ['num', 1, 1.5],
     baselineScope: oneOf(['canvas', 'blocks']),
     powerDepth: ['int', 1, 5], powerBase2: ['bool'], powerBase3: ['bool'], powerBase5: ['bool'],
     powerMargin: ['int', 0, 24], powerSnap: ['bool'], anchorMode: oneOf(['diagonal', 'all']),
+    showReference: ['bool'], referenceOpacity: ['num', 0.05, 1], showDetected: ['bool'], showStyleAxes: ['bool'], styleId: ['id'],
     showPlacements: ['bool'], placementTemplate: ['id'], showSlots: ['bool'], elements: ['elements'],
     showPower: ['bool'], showAnchors: ['bool'], showPowerLabels: ['bool'],
     showPowerDiagonals: ['bool'], showStripDiagonals: ['bool'],
