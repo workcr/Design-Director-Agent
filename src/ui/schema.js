@@ -37,8 +37,22 @@
       fields: [
         { key: 'divisions', label: 'Canon division', type: 'range', min: 4, max: 36, step: 1, hint: 'Top margin = height ÷ D, inner = page width ÷ D. D = 9 is the classic canon.' },
         { key: 'perfect', label: 'Exact divisions', type: 'custom', hint: 'Divisions where every margin lands on the grid with no rounding.' },
+        { key: 'aligned', label: 'On power lines', type: 'custom', hint: 'Divisions whose work-area edges coincide with a power line — the two systems then agree.' },
         { key: 'snapMode', label: 'Snap margins', type: 'segmented', options: [['nearest', 'Nearest'], ['floor', 'Down'], ['ceil', 'Up'], ['none', 'Off']] },
         { key: 'blockMode', label: 'Work area', type: 'segmented', options: [['pages', 'Per page'], ['centered', 'Centered']], show: (c) => c.layout === 'spread' },
+      ],
+    },
+    {
+      id: 'power', title: 'Power lines & anchors', open: true,
+      fields: [
+        chip('showPower', 'Power lines'), chip('showAnchors', 'Anchors'), chip('showPowerLabels', 'Fractions'),
+        chip('showPowerDiagonals', 'Diagonals'), chip('showStripDiagonals', 'Strips'),
+        { key: 'powerDepth', label: 'Depth', type: 'range', min: 1, max: 5, step: 1, hint: 'Each step halves the strip next to the edge: 1 → ½ ⅓ · 2 → ¼ ⅙ · 3 → ⅛ 1/12 · 4 → 1/16 1/24.' },
+        chip('powerBase2', '½ series'), chip('powerBase3', '⅓ series'), chip('powerBase5', '⅕ series'),
+        { key: 'anchorMode', label: 'Anchor points', type: 'segmented', options: [['diagonal', 'On diagonals'], ['all', 'Every crossing']], hint: 'Diagonal anchors sit where a power line meets a canvas or half-canvas diagonal.' },
+        { key: 'powerMargin', label: 'Stop near the edge', type: 'range', min: 0, max: 24, step: 1, suffix: 'u', hint: 'Lines closer than this to an edge are dropped (the reference stops at 40–100px).' },
+        { key: 'powerSnap', label: 'Snap lines to grid', type: 'toggle' },
+        { key: 'powerTable', label: 'Lines', type: 'custom' },
       ],
     },
     {
@@ -91,7 +105,7 @@
       fields: [
         { key: 'theme', label: 'Theme', type: 'select', options: opts(THEMES), patchFrom: (v) => ({ ...THEMES[v], label: undefined }) },
         color('cBg', 'Background'), color('cGrid', 'Unit grid'), color('cBaseline', 'Baseline'),
-        color('cCanon', 'Canon'), color('cBlock', 'Work area'), color('cColumn', 'Columns'), color('cText', 'Text'),
+        color('cCanon', 'Canon'), color('cPower', 'Power lines'), color('cBlock', 'Work area'), color('cColumn', 'Columns'), color('cText', 'Text'),
       ],
     },
     {

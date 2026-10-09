@@ -120,18 +120,20 @@
 
   /* ---------- custom read-outs rendered from the model ---------- */
 
-  function perfectControl(f, store) {
-    const list = el('div', { class: 'chips', role: 'group', 'aria-label': 'Exact canon divisions' });
+  function divisionChips(source, emptyText) {
+    return function control(f, store) {
+    const list = el('div', { class: 'chips', role: 'group', 'aria-label': f.label });
     const node = el('div', { class: 'field field--custom' }, [el('span', { class: 'label', text: f.label }), list, f.hint && el('p', { class: 'hint', text: f.hint })]);
     return {
       node,
       sync(cfg, model) {
         list.replaceChildren();
-        if (!model.perfect.length) {
-          list.append(el('span', { class: 'muted', text: 'None for this canvas and unit — snapping applies.' }));
+        const divisions = model[source];
+        if (!divisions.length) {
+          list.append(el('span', { class: 'muted', text: emptyText }));
           return;
         }
-        model.perfect.forEach((d) => {
+        divisions.forEach((d) => {
           const b = el('button', { type: 'button', class: 'chip chip--mono', text: String(d) });
           b.setAttribute('aria-pressed', String(cfg.divisions === d));
           b.addEventListener('click', () => store.patch({ divisions: d }));
@@ -139,7 +141,11 @@
         });
       },
     };
+    };
   }
+
+  const perfectControl = divisionChips('perfect', 'None for this canvas and unit — snapping applies.');
+  const alignedControl = divisionChips('alignedDivisions', 'None with the current power-line settings.');
 
   function typeScaleControl(f) {
     const body = el('tbody');
@@ -161,11 +167,41 @@
     };
   }
 
+  function powerTableControl(f) {
+    const body = el('tbody');
+    const table = el('table', { class: 'scale' }, [
+      el('thead', {}, [el('tr', {}, ['line', 'x px', 'y px'].map((t) => el('th', { text: t, scope: 'col' })))]),
+      body,
+    ]);
+    const legend = el('p', { class: 'hint', text: 'Amber = snapped off its pure fraction; hover for the shift.' });
+    const node = el('div', { class: 'field field--custom' }, [el('span', { class: 'label', text: f.label }), table, legend]);
+    const cellFor = (l) => {
+      if (!l) return el('td', { text: '·' });
+      const td = el('td', { text: `${Math.round(l.pos * 100) / 100}` });
+      if (!l.exact) {
+        td.className = 'off';
+        td.title = `pure ${Math.round(l.ideal * 100) / 100}px · shifted ${l.deviation > 0 ? '+' : ''}${Math.round(l.deviation * 100) / 100}px`;
+      }
+      return td;
+    };
+    return {
+      node,
+      sync(cfg, model) {
+        const rows = new Map();
+        model.power.x.forEach((l) => rows.set(l.label, { value: l.value, x: l }));
+        model.power.y.forEach((l) => rows.set(l.label, { ...(rows.get(l.label) || { value: l.value }), y: l }));
+        const sorted = [...rows.entries()].sort((a, b) => a[1].value - b[1].value);
+        body.replaceChildren(...sorted.map(([label, r]) => el('tr', {}, [el('th', { scope: 'row', text: label }), cellFor(r.x), cellFor(r.y)])));
+        node.hidden = sorted.length === 0;
+      },
+    };
+  }
+
   const BUILDERS = {
     range: rangeControl, number: numberControl, segmented: segmentedControl, select: selectControl,
     toggle: toggleControl, chip: chipControl, color: colorControl,
   };
-  const CUSTOM = { perfect: perfectControl, typescale: typeScaleControl };
+  const CUSTOM = { perfect: perfectControl, aligned: alignedControl, typescale: typeScaleControl, powerTable: powerTableControl };
 
   function createPanel(root, store, actions) {
     const controls = [];

@@ -35,6 +35,9 @@
       );
     }
     rows.push(`  --baseline: ${px(baseline.step)};`);
+    const name = (l) => l.label.replace('/', '-');
+    model.power.x.forEach((l) => rows.push(`  --power-x-${name(l)}: ${px(l.pos)};`));
+    model.power.y.forEach((l) => rows.push(`  --power-y-${name(l)}: ${px(l.pos)};`));
     type.scale.forEach((s) => rows.push(`  --font-size-${s.name}: ${px(s.size)};`, `  --line-height-${s.name}: ${px(s.leading)};`));
     rows.push('}', '');
     if (g && g.ok) {
@@ -48,7 +51,8 @@
   }
 
   function toJson(model) {
-    const { cfg, unit, view, margins, blocks, grids, type, baseline, integrity, stats } = model;
+    const { cfg, unit, view, margins, blocks, grids, type, baseline, integrity, stats, power } = model;
+    const line = (l) => ({ fraction: l.label, position: l.pos, units: l.units, ideal: l.ideal, deviation: l.deviation, level: l.level });
     return {
       foundations: { setUp: { gridUnit: unit, canvasWidth: view.width, canvasHeight: view.height, layout: cfg.layout } },
       grids: {
@@ -61,6 +65,10 @@
           gutter: cfg.gutter * unit, rows: cfg.rows, rowGutter: cfg.rowGutter * unit,
         })),
         baseline: { step: baseline.step, units: baseline.units, origin: baseline.origin },
+      },
+      powerLines: {
+        x: power.x.map(line), y: power.y.map(line),
+        anchors: power.anchors.map((a) => ({ x: a.x, y: a.y, fx: a.fx, fy: a.fy, label: a.label, onDiagonal: a.strong, level: a.level })),
       },
       typography: Object.fromEntries(type.scale.map((s) => [s.name, { fontFamily: cfg.fontFamily, fontSize: s.size, lineHeight: s.leading, lineHeightUnits: s.leadingUnits }])),
       integrity: { edges: integrity.total, onGrid: integrity.onGrid },
@@ -81,13 +89,18 @@
         const dash = st.dash ? ` stroke-dasharray="${st.dash.join(' ')}"` : '';
         return `<line x1="${n(p.x1)}" y1="${n(p.y1)}" x2="${n(p.x2)}" y2="${n(p.y2)}" stroke="${st.stroke}" stroke-opacity="${st.alpha}" stroke-width="${n(st.w)}"${dash}/>`;
       }
+      if (p.t === 'dot') {
+        const fill = st.fill ? `fill="${st.fill}"` : 'fill="none"';
+        const stroke = st.stroke ? ` stroke="${st.stroke}" stroke-opacity="${st.alpha}" stroke-width="${n(st.w)}"` : '';
+        return `<circle cx="${n(p.x)}" cy="${n(p.y)}" r="${p.r}" ${fill}${stroke}/>`;
+      }
       if (p.t === 'rect') {
         const fill = st.fill && p.fill !== false ? `fill="${st.fill}" fill-opacity="${st.fillAlpha}"` : 'fill="none"';
         const stroke = st.stroke ? `stroke="${st.stroke}" stroke-opacity="${st.alpha}" stroke-width="${n(st.w)}"` : 'stroke="none"';
         const dash = st.dash ? ` stroke-dasharray="${st.dash.join(' ')}"` : '';
         return `<rect x="${n(p.x)}" y="${n(p.y)}" width="${n(p.w)}" height="${n(p.h)}" ${fill} ${stroke}${dash}/>`;
       }
-      if (p.role === 'label') return ''; // labels are screen-sized annotations; omitted from vector export
+      if (p.role === 'label' || p.role === 'powerLabel') return ''; // labels are screen-sized annotations; omitted from vector export
       const family = esc(p.family || 'sans-serif');
       return `<text x="${n(p.x)}" y="${n(p.y)}" font-family="${family}" font-size="${p.size}" font-weight="${p.weight || 'normal'}" fill="${st.fill}">${esc(p.str)}</text>`;
     }).filter(Boolean).join('\n  ');

@@ -24,17 +24,17 @@
     drafting: {
       label: 'Drafting dark',
       cBg: '#1d1d20', cGrid: '#8fa0b3', cBaseline: '#a7f7fa', cCanon: '#ff5a36',
-      cBlock: '#ffffff', cColumn: '#6ea8ff', cText: '#e9e9ec',
+      cBlock: '#ffffff', cColumn: '#6ea8ff', cText: '#e9e9ec', cPower: '#ffd166',
     },
     paper: {
       label: 'Paper',
       cBg: '#f4f1ea', cGrid: '#6b7280', cBaseline: '#0e7c86', cCanon: '#d9381e',
-      cBlock: '#16161a', cColumn: '#2f5fd0', cText: '#16161a',
+      cBlock: '#16161a', cColumn: '#2f5fd0', cText: '#16161a', cPower: '#a85d00',
     },
     blueprint: {
       label: 'Blueprint',
       cBg: '#0f2a52', cGrid: '#9ec5ff', cBaseline: '#ffffff', cCanon: '#ffd166',
-      cBlock: '#ffffff', cColumn: '#7bdff2', cText: '#eaf3ff',
+      cBlock: '#ffffff', cColumn: '#7bdff2', cText: '#eaf3ff', cPower: '#ff9ecd',
     },
   };
 
@@ -59,6 +59,11 @@
     fontFamily: 'Helvetica', baseSize: 16, lineHeight: 1.5, tighten: 0.07,
     scaleRatio: 'majorThird', stepsDown: 2, stepsUp: 6, roundSizes: true,
     baselineMode: 'leading', baselineCustom: 3, baselineOrigin: 'canvas', baselineScope: 'canvas',
+    // power lines & anchors
+    powerDepth: 3, powerBase2: true, powerBase3: true, powerBase5: false,
+    powerMargin: 5, powerSnap: true, anchorMode: 'diagonal',
+    showPower: true, showAnchors: true, showPowerLabels: true,
+    showPowerDiagonals: false, showStripDiagonals: false,
     // display
     showPixelGrid: true, majorEvery: 8, gridOpacity: 0.35,
     showBaseline: true, showCanon: true, showLadder: true, showPages: true,
@@ -84,6 +89,10 @@
     roundSizes: ['bool'], baselineMode: oneOf(['leading', 'unit', 'custom']),
     baselineCustom: ['int', 1, 24], baselineOrigin: oneOf(['canvas', 'block']),
     baselineScope: oneOf(['canvas', 'blocks']),
+    powerDepth: ['int', 1, 5], powerBase2: ['bool'], powerBase3: ['bool'], powerBase5: ['bool'],
+    powerMargin: ['int', 0, 24], powerSnap: ['bool'], anchorMode: oneOf(['diagonal', 'all']),
+    showPower: ['bool'], showAnchors: ['bool'], showPowerLabels: ['bool'],
+    showPowerDiagonals: ['bool'], showStripDiagonals: ['bool'],
     showPixelGrid: ['bool'], majorEvery: ['int', 2, 32], gridOpacity: ['num', 0.05, 1],
     showBaseline: ['bool'], showCanon: ['bool'], showLadder: ['bool'], showPages: ['bool'],
     showBlocks: ['bool'], showIdeal: ['bool'], showColumns: ['bool'], showGutters: ['bool'],
@@ -91,7 +100,7 @@
     showSpecimen: ['bool'], showOffGrid: ['bool'], lineWeight: ['num', 0.5, 3],
     theme: oneOf(Object.keys(THEMES)), zoom: oneOf(['fit', '1', '0.5']),
     cBg: ['color'], cGrid: ['color'], cBaseline: ['color'], cCanon: ['color'],
-    cBlock: ['color'], cColumn: ['color'], cText: ['color'],
+    cBlock: ['color'], cColumn: ['color'], cText: ['color'], cPower: ['color'],
   };
 
   /** Returns a complete, clamped config. Unknown / invalid values fall back to defaults. */
@@ -115,6 +124,7 @@
   const GUIDE_KEYS = [
     'showPixelGrid', 'showBaseline', 'showPages', 'showCanon', 'showLadder', 'showIdeal',
     'showBlocks', 'showColumns', 'showGutters', 'showLabels',
+    'showPower', 'showAnchors', 'showPowerLabels', 'showPowerDiagonals', 'showStripDiagonals',
   ];
 
   const guidesVisible = (cfg) => GUIDE_KEYS.some((k) => cfg[k]);

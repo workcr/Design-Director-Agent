@@ -2,7 +2,7 @@
 (function () {
   const G = (globalThis.GridCalc = globalThis.GridCalc || {});
   if (typeof module !== 'undefined') {
-    ['./math.js', './config.js', './canon.js', './columns.js', './typography.js'].forEach(require);
+    ['./math.js', './config.js', './canon.js', './columns.js', './powerlines.js', './typography.js'].forEach(require);
   }
   const { isOnGrid, toUnits, round, EPS } = G.math;
 
@@ -22,6 +22,10 @@
         edges.push({ axis: 'y', label: `${tag} row edge`, v: m.y }, { axis: 'y', label: `${tag} row edge`, v: m.y + m.h });
       });
     });
+    if (model.cfg.showPower || model.cfg.showAnchors) {
+      model.power.x.forEach((l) => edges.push({ axis: 'x', label: `power line ${l.label}`, v: l.pos }));
+      model.power.y.forEach((l) => edges.push({ axis: 'y', label: `power line ${l.label}`, v: l.pos }));
+    }
     const seen = new Set();
     const unique = edges.filter((e) => {
       const key = `${e.axis}:${round(e.v, 4)}:${e.label}`;
@@ -42,11 +46,22 @@
     return ys;
   }
 
+  /** Canon divisions whose work-area edges (at least four) land on a power line. */
+  function alignedDivisions(cfg, power) {
+    const out = [];
+    for (let d = 4; d <= 36; d++) {
+      const canon = G.canon.computeCanon({ ...cfg, divisions: d });
+      if (G.powerlines.canonAlignment(canon.blocks, power).matched >= 4) out.push(d);
+    }
+    return out;
+  }
+
   function buildModel(rawCfg, measure) {
     const { normalize } = G.config;
     const cfg = normalize(rawCfg);
     const canon = G.canon.computeCanon(cfg);
     const type = G.typography.resolveType(cfg);
+    const power = G.powerlines.computePowerLines(cfg, canon.view);
     const grids = canon.blocks.map((b) => G.columns.layoutBlockGrid(b, cfg, type.baselineUnits));
     const origin = cfg.baselineOrigin === 'block' && canon.blocks.length ? canon.blocks[0].y : 0;
     const baseline = {
@@ -64,8 +79,9 @@
       })
       : [];
 
-    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, grids, type, baseline, text };
+    const model = { cfg, unit: cfg.unit, canvas: canon.canvas, view: canon.view, margins: canon.margins, blocks: canon.blocks, construction: canon.construction, perfect: canon.perfect, power, grids, type, baseline, text };
     model.integrity = scoreIntegrity(model);
+    model.alignedDivisions = alignedDivisions(cfg, power);
 
     const first = grids[0];
     const b0 = canon.blocks[0];
@@ -75,6 +91,7 @@
       columnUnits: first ? first.columnUnits : 0,
       rowUnits: first ? first.rowUnits : 0,
       linesPerColumn: first && first.ok ? Math.floor(first.columns[0].h / type.baselineStep + EPS) : 0,
+      canonOnPower: G.powerlines.canonAlignment(canon.blocks, power),
       maxDeviation: Math.max(0, ...canon.blocks.flatMap((b) => Object.values(b.deviation).map(Math.abs))),
     };
 

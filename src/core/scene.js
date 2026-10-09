@@ -26,6 +26,14 @@
       column: { stroke: cfg.cColumn, alpha: 0.8, w: lw, fill: cfg.cColumn, fillAlpha: 0.1 },
       gutter: { fill: cfg.cColumn, fillAlpha: 0.05 },
       offgrid: { stroke: OFFGRID, alpha: 1, w: 1.5 * lw, fill: OFFGRID, fillAlpha: 0.12 },
+      power0: { stroke: cfg.cPower, alpha: 0.95, w: lw, dash: [6, 3] },
+      power1: { stroke: cfg.cPower, alpha: 0.7, w: 0.85 * lw, dash: [6, 3] },
+      power2: { stroke: cfg.cPower, alpha: 0.5, w: 0.7 * lw, dash: [6, 3] },
+      powerMain: { stroke: cfg.cPower, alpha: 0.55, w: lw },
+      powerStrip: { stroke: cfg.cPower, alpha: 0.22, w: 0.6 * lw },
+      anchorStrong: { fill: cfg.cPower, fillAlpha: 1, stroke: cfg.cBg, alpha: 0.9, w: 1.25 * lw },
+      anchor: { stroke: cfg.cPower, alpha: 0.9, w: 1.25 * lw },
+      powerLabel: { fill: cfg.cPower, fillAlpha: 1 },
       label: { fill: cfg.cText, fillAlpha: 0.75 },
       text: { fill: cfg.cText, fillAlpha: 1 },
     };
@@ -63,6 +71,15 @@
       }
     }
 
+    // power lines: construction diagonals, then the lines themselves
+    const { power } = model;
+    if (cfg.showStripDiagonals) power.strips.forEach((s) => line('powerStrip', s.x1, s.y1, s.x2, s.y2));
+    if (cfg.showPowerDiagonals) power.primary.forEach((s) => line('powerMain', s.x1, s.y1, s.x2, s.y2));
+    if (cfg.showPower) {
+      power.x.forEach((l) => line(`power${Math.min(l.level, 2)}`, l.pos, 0, l.pos, view.height));
+      power.y.forEach((l) => line(`power${Math.min(l.level, 2)}`, 0, l.pos, view.width, l.pos));
+    }
+
     // canon construction
     if (cfg.showCanon) {
       model.construction.filter((s) => s.role === 'diagonal' || cfg.showLadder).forEach((s) => line(s.role, s.x1, s.y1, s.x2, s.y2));
@@ -98,8 +115,19 @@
       });
     }
 
+    // anchor points
+    if (cfg.showAnchors) {
+      power.anchors.forEach((a) => out.push({ t: 'dot', role: a.strong ? 'anchorStrong' : 'anchor', x: a.x, y: a.y, r: Math.max(2.5, 4.5 - a.level * 0.6) }));
+    }
+
     // specimen
     model.text.forEach((l) => out.push({ t: 'text', role: 'text', str: l.text, x: l.x, y: l.y, size: l.size, weight: l.weight, family: FAMILY[cfg.fontFamily], align: 'left' }));
+
+    if (cfg.showPower && cfg.showPowerLabels) {
+      const tag = (strs, x, y, extra) => out.push({ t: 'text', role: 'powerLabel', strs, x, y, size: 10, screen: true, align: 'center', ...extra });
+      power.x.forEach((l) => tag([l.label], l.pos, 0, { dy: 13 }));
+      power.y.forEach((l) => tag([l.label], 0, l.pos, { align: 'left', dx: 5, dy: -6 }));
+    }
 
     // labels — each carries candidate strings, longest first; the renderer picks the first that fits
     if (cfg.showLabels) {

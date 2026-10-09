@@ -56,6 +56,9 @@
       return weight;
     };
 
+    const placed = []; // label boxes already drawn, so crowded fractions can be skipped
+    const overlaps = (b) => placed.some((q) => b.l < q.r && b.r > q.l && b.t < q.b && b.b > q.t);
+
     for (const p of scene) {
       const st = styles[p.role];
       if (!st) continue;
@@ -86,9 +89,14 @@
           const t = crisp(y0, weight);
           ctx.strokeRect(l, t, crisp(x0 + p.w, weight) - l, crisp(y0 + p.h, weight) - t);
         }
+      } else if (p.t === 'dot') {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r / scale, 0, Math.PI * 2);
+        if (st.fill) { ctx.fillStyle = rgba(st.fill, st.fillAlpha); ctx.fill(); }
+        if (st.stroke) { setStroke(st); ctx.stroke(); }
       } else if (p.t === 'text') {
         const size = p.screen ? p.size / scale : p.size;
-        const x = p.x;
+        const x = p.x + (p.dx ? p.dx / scale : 0);
         const y = p.y + (p.dy ? p.dy / scale : 0);
         ctx.save();
         ctx.setLineDash([]);
@@ -96,13 +104,18 @@
         ctx.textAlign = p.align || 'left';
         ctx.textBaseline = p.baselineMid ? 'middle' : 'alphabetic';
         let str = p.str;
-        if (p.role === 'label') {
+        if (p.strs) {
           const room = p.fitWidth === undefined ? Infinity : p.fitWidth - 8 / scale;
           str = p.strs.find((c) => ctx.measureText(c).width <= room);
           if (str === undefined) { ctx.restore(); continue; }
           const w = ctx.measureText(str).width;
           const pad = 3 / scale;
           const left = p.align === 'left' ? x : x - w / 2;
+          if (p.role === 'powerLabel') {
+            const box = { l: left - pad, r: left + w + pad, t: y - size * 0.62 - pad, b: y + size * 0.62 + pad };
+            if (overlaps(box)) { ctx.restore(); continue; }
+            placed.push(box);
+          }
           ctx.fillStyle = rgba(cfg.cBg, 0.78);
           ctx.fillRect(left - pad, y - size * 0.62 - pad, w + pad * 2, size * 1.24 + pad * 2);
         }
